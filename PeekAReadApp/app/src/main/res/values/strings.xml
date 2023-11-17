@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Peek-A-Read</string>
+    <string name="action_settings">Präferenzen bearbeiten</string>
+
+    <!-- Strings used for fragments for navigation -->
+
+    <string name="CameraScreen">Foto machen</string>
+    <string name="ScanScreen">Textfelder auswählen </string>
+    <string name="TextScreen">Sichtbarer Text</string>
+    <string name="PreferencesScreen">Präferenzen bearbeiten</string>
+
+</resources>

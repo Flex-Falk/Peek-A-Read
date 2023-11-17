@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/CameraScreen">
+
+    <!-- CameraScreen -->
+    <fragment
+        android:id="@+id/CameraScreen"
+        android:name="com.example.peekareadapp.CameraScreen"
+        android:label="@string/CameraScreen"
+        tools:layout="@layout/camera_screen">
+
+        <!-- Forward Navigation -->
+        <action
+            android:id="@+id/action_toScanScreen"
+            app:destination="@id/ScanScreen" />
+
+        <!-- Navigation through Top App Bar to edit Preferences-->
+        <action
+            android:id="@+id/action_toPreferencesScreen"
+            app:destination="@id/PreferencesScreen" />
+    </fragment>
+
+    <!-- ScanScreen -->
+    <fragment
+        android:id="@+id/ScanScreen"
+        android:name="com.example.peekareadapp.ScanScreen"
+        android:label="@string/ScanScreen"
+        tools:layout="@layout/scan_screen">
+
+        <!-- Forward Navigation -->
+        <action
+            android:id="@+id/action_toTextScreen"
+            app:destination="@id/TextScreen" />
+
+        <!-- Navigation through Top App Bar to edit Preferences-->
+        <action
+            android:id="@+id/action_toPreferencesScreen"
+            app:destination="@id/PreferencesScreen" />
+    </fragment>
+
+    <!-- TextScreen -->
+    <fragment
+        android:id="@+id/TextScreen"
+        android:name="com.example.peekareadapp.TextScreen"
+        android:label="@string/TextScreen"
+        tools:layout="@layout/text_screen">
+
+        <!-- Navigation through Top App Bar to edit Preferences-->
+        <action
+            android:id="@+id/action_toPreferencesScreen"
+            app:destination="@id/PreferencesScreen" />
+    </fragment>
+
+    <!-- PreferencesScreen -->
+    <fragment
+        android:id="@+id/PreferencesScreen"
+        android:name="com.example.peekareadapp.TextScreen"
+        android:label="@string/PreferencesScreen"
+        tools:layout="@layout/preferences_screen">
+    </fragment>
+</navigation>
