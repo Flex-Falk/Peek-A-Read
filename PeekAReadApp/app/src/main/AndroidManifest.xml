@@ -9,9 +9,9 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/whatsapp_image_2023_11_02_at_12_08_11"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/whatsapp_image_2023_11_02_at_12_08_11"
         android:supportsRtl="true"
         android:theme="@style/Theme.PeekAReadApp"
         tools:targetApi="33">
