@@ -9,8 +9,7 @@
     <fragment
         android:id="@+id/CameraScreen"
         android:name="com.example.peekareadapp.CameraScreen"
-        android:label="@string/CameraScreen"
-        tools:layout="@layout/camera_screen">
+        android:label="@string/CameraScreen">
 
         <!-- Forward Navigation -->
         <action

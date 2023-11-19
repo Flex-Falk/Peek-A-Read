@@ -5,35 +5,40 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
-import com.example.peekareadapp.databinding.CameraScreenBinding
 
 /**
  * Screen where the user data should be put in.
  */
 class CameraScreen : Fragment() {
-
-    private var _binding: CameraScreenBinding? = null
-    private lateinit var PreferencesViewModel: Preferences
-
-    private val binding get() = _binding!!
+    private lateinit var composeView: ComposeView
+    private val viewModel: CameraScreenViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        _binding = CameraScreenBinding.inflate(inflater, container, false)
-        return binding.root
+        return ComposeView(requireContext()).also {
+            composeView = it
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        PreferencesViewModel = ViewModelProvider(requireActivity()).get(Preferences::class.java)
-        binding.buttonToScanScreen.setOnClickListener {
-            findNavController().navigate(R.id.action_toScanScreen)
+        composeView.setContent {
+            val state by viewModel.state.collectAsState()
+            CameraScreenCompose(
+                state = state,
+                toScanScreen = {
+                findNavController().navigate(R.id.action_toScanScreen)
+            })
         }
     }
 }
