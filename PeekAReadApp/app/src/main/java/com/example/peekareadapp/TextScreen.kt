@@ -4,31 +4,36 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.fragment.findNavController
-import com.example.peekareadapp.databinding.TextScreenBinding
+import androidx.fragment.app.viewModels
 
 /**
  * Screen where a drink should be selected.
  */
 class TextScreen : Fragment() {
-
-    private var _binding: TextScreenBinding? = null
-    private lateinit var PreferencesViewModel: Preferences
-    private val binding get() = _binding!!
+    private lateinit var composeView: ComposeView
+    private val viewModel: TextScreenViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        _binding = TextScreenBinding.inflate(inflater, container, false)
-        return binding.root
+        return ComposeView(requireContext()).also {
+            composeView = it
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        PreferencesViewModel = ViewModelProvider(requireActivity()).get(Preferences::class.java)
 
+        composeView.setContent {
+            val state by viewModel.state.collectAsState()
+            TextScreenCompose(
+                state = state
+            )
+        }
     }
 }

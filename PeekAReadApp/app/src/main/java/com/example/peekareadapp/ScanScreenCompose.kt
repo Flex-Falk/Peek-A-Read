@@ -12,18 +12,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.material3.Icon
 
+
 @Composable
-fun CameraScreenCompose (
-    state: CameraScreenState,
-    toScanScreen: () -> Unit
+fun ScanScreenCompose (
+    state: ScanScreenState,
+    toTextScreen: () -> Unit
 ){
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.SpaceEvenly,
         horizontalAlignment = Alignment.CenterHorizontally
     ){
-        Text(text = "Hier wird die App in der Kameraansicht gestartet.")
-        FloatingActionButton(onClick = toScanScreen){
+        Text(text = "Hier werden Elemente aus dem geschossenen Bild ausgewählt.")
+        FloatingActionButton(onClick = toTextScreen){
             Icon(Icons.Filled.Add, "Floating action button.")
         }
     }

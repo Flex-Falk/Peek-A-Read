@@ -26,8 +26,7 @@
     <fragment
         android:id="@+id/ScanScreen"
         android:name="com.example.peekareadapp.ScanScreen"
-        android:label="@string/ScanScreen"
-        tools:layout="@layout/scan_screen">
+        android:label="@string/ScanScreen">
 
         <!-- Forward Navigation -->
         <action
@@ -44,8 +43,7 @@
     <fragment
         android:id="@+id/TextScreen"
         android:name="com.example.peekareadapp.TextScreen"
-        android:label="@string/TextScreen"
-        tools:layout="@layout/text_screen">
+        android:label="@string/TextScreen">
 
         <!-- Navigation through Top App Bar to edit Preferences-->
         <action
@@ -57,7 +55,6 @@
     <fragment
         android:id="@+id/PreferencesScreen"
         android:name="com.example.peekareadapp.TextScreen"
-        android:label="@string/PreferencesScreen"
-        tools:layout="@layout/preferences_screen">
+        android:label="@string/PreferencesScreen">
     </fragment>
 </navigation>
