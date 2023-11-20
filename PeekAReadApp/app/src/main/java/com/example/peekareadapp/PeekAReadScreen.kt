@@ -3,6 +3,7 @@ package com.example.peekareadapp
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -13,6 +14,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.BottomAppBarDefaults
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
@@ -35,12 +37,24 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import android.Manifest
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
+import com.google.accompanist.permissions.PermissionState
 
 /**
  * enum values that represent the screens in the app
@@ -54,6 +68,9 @@ enum class PeekAReadScreen(@StringRes val title: Int) {
 
 }
 
+var alreadyAskedForPreferences: Boolean = false
+
+
 /**
  * Composable that displays the topBar and displays back button if back navigation is possible.
  */
@@ -64,9 +81,9 @@ fun PeekAReadAppBar(
     canNavigateBack: Boolean,
     navigateUp: () -> Unit,
     navigateToPreferences: () -> Unit,
-    isSettingsEnabled: Boolean,
-    modifier: Modifier = Modifier
-) {
+    isPreferencesButtonEnabled: Boolean,
+    modifier: Modifier = Modifier,
+    ) {
     TopAppBar(
         title = { Text(stringResource(currentScreen.title)) },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
@@ -85,7 +102,7 @@ fun PeekAReadAppBar(
         },
         actions = {
             // Add the settings icon to the top app bar only if it's enabled
-            if (isSettingsEnabled) {
+            if (isPreferencesButtonEnabled) {
                 IconButton(onClick = navigateToPreferences) {
                     Icon(
                         imageVector = Icons.Default.Settings,
@@ -96,7 +113,37 @@ fun PeekAReadAppBar(
         }
     )
 }
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+fun handleMissingCameraPermission(context: Context, cameraPermissionState: PermissionState) {
 
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.SpaceEvenly,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (alreadyAskedForPreferences == false) {
+            Text("Die Kamera ist wichtig für diese App. Bitte erlauben Sie Peek-A-Read den Zugriff darauf.")
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(onClick = { cameraPermissionState.launchPermissionRequest(); alreadyAskedForPreferences = true
+            }) {
+                Text("Zugriff erlauben")
+            }
+        } else {
+            Text("Die Kamera ist nicht verfügbar.")
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(onClick = {
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                intent.data = Uri.parse("package:" + context.packageName)
+                context.startActivity(intent)
+            }) {
+                Text("Zugriff erlauben")
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun PeekAReadApp(
     navController: NavHostController = rememberNavController()
@@ -108,6 +155,7 @@ fun PeekAReadApp(
         backStackEntry?.destination?.route ?: PeekAReadScreen.Start.name
     )
 
+
     Scaffold(
         topBar = {
             PeekAReadAppBar(
@@ -115,7 +163,7 @@ fun PeekAReadApp(
                 canNavigateBack = navController.previousBackStackEntry != null,
                 navigateUp = { navController.navigateUp() },
                 navigateToPreferences = { navController.navigate(PeekAReadScreen.Preferences.name)},
-                isSettingsEnabled = currentScreen != PeekAReadScreen.Preferences
+                isPreferencesButtonEnabled = currentScreen != PeekAReadScreen.Preferences
             )
         }
     ) { innerPadding ->
@@ -125,16 +173,22 @@ fun PeekAReadApp(
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(route = PeekAReadScreen.Camera.name) {
+                val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
+
+                if (cameraPermissionState.status.isGranted) {
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.SpaceEvenly,
                         horizontalAlignment = Alignment.CenterHorizontally
-                    ){
+                    ) {
                         Text(text = "Hier wird die App in der Kameraansicht gestartet.")
-                        FloatingActionButton(onClick = { navController.navigate(PeekAReadScreen.Scan.name) }){
+                        FloatingActionButton(onClick = { navController.navigate(PeekAReadScreen.Scan.name) }) {
                             Icon(Icons.Filled.Add, "Floating action button.")
                         }
                     }
+                } else {
+                    handleMissingCameraPermission(LocalContext.current, cameraPermissionState)
+                }
             }
             composable(route = PeekAReadScreen.Scan.name) {
                 Column(
@@ -183,11 +237,15 @@ fun PeekAReadApp(
                         )
                     },
                 ) { innerPadding ->
+
+                    val fontSize = (16 * sliderPosition + 20).sp // Adjust the base size (16) based on the slider position
+                    val lineHeight = fontSize * 1.25
+
                     Text(
                         modifier = Modifier.padding(innerPadding),
-                        text = "lrnglwrjngjlnwrgrnwglwngk\n" +
-                                "kwjrgkjwbrg kwjbfgkwjrbf kwbjdfkjwrbf kjbfkjbwrf kjbfkwgjrbgkjrwg kjbdfkjbwrfjk kjbfgkwrjb",
-                        fontSize = (16 * sliderPosition + 20).sp // Adjust the base size (16) based on the slider position
+                        text = stringResource(R.string.LoremIpsum),
+                        fontSize = fontSize,
+                        lineHeight = lineHeight
                     )
                 }
             }
