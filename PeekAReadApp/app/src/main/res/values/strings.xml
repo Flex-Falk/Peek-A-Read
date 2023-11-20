@@ -8,5 +8,7 @@
     <string name="ScanScreen">Textfelder auswählen </string>
     <string name="TextScreen">Sichtbarer Text</string>
     <string name="PreferencesScreen">Präferenzen bearbeiten</string>
+    <string name="BackButtton">Zurück</string>
+
 
 </resources>
