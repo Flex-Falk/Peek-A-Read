@@ -47,6 +47,8 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import androidx.camera.core.CameraSelector
+import androidx.camera.lifecycle.ProcessCameraProvider
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -54,7 +56,21 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.LifecycleOwner
 import com.google.accompanist.permissions.PermissionState
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageProxy
+import androidx.camera.core.Preview
+import androidx.camera.view.PreviewView
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.viewinterop.AndroidView
+import com.google.common.util.concurrent.ListenableFuture
+
 
 /**
  * enum values that represent the screens in the app
@@ -174,6 +190,8 @@ fun PeekAReadApp(
         ) {
             composable(route = PeekAReadScreen.Camera.name) {
                 val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
+                val context = LocalContext.current
+                val lifecycleOwner = LocalLifecycleOwner.current
 
                 if (cameraPermissionState.status.isGranted) {
                     Column(
@@ -181,7 +199,9 @@ fun PeekAReadApp(
                         verticalArrangement = Arrangement.SpaceEvenly,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(text = "Hier wird die App in der Kameraansicht gestartet.")
+                        //Text(text = "Hier wird die App in der Kameraansicht gestartet.")
+                        CameraPreview(context = context, lifecycleOwner = lifecycleOwner)
+
                         FloatingActionButton(onClick = { navController.navigate(PeekAReadScreen.Scan.name) }) {
                             Icon(Icons.Filled.Add, "Floating action button.")
                         }
@@ -261,3 +281,54 @@ fun PeekAReadApp(
         }
     }
 }
+
+@Composable
+fun CameraPreview(context: Context, lifecycleOwner: LifecycleOwner){
+    val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
+    var preview by remember { mutableStateOf<Preview?>(null) }
+    val executor = ContextCompat.getMainExecutor(context)
+    val cameraProvider = cameraProviderFuture.get()
+    val imageCapture: ImageCapture = remember { ImageCapture.Builder().build() }
+
+        Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.fillMaxSize()
+    ){
+        AndroidView(
+            modifier = Modifier
+                .fillMaxSize(),
+            factory = { ctx ->
+                val previewView = PreviewView(ctx)
+                cameraProviderFuture.addListener(
+                    { val cameraSelector = CameraSelector.Builder()
+                        .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+                        .build()
+                        cameraProvider.unbindAll()
+                        cameraProvider.bindToLifecycle(
+                            lifecycleOwner,
+                            cameraSelector,
+                            preview,
+                            imageCapture
+                        )
+                    }, executor)
+                preview = Preview.Builder().build().also {
+                    it.setSurfaceProvider(previewView.surfaceProvider)
+                }
+                previewView
+            }
+        )
+        Column (
+            modifier = Modifier.align(Alignment.BottomCenter),
+            verticalArrangement = Arrangement.Bottom
+        ){
+            IconButton(
+                modifier = Modifier.padding(bottom = 20.dp),
+                onClick = { /*TODO*/ }
+            ) {
+                Icon(Icons.Filled.Add, "Take photo", tint = Color.White,
+                    modifier = Modifier.size(80.dp).border(1.dp, Color.White, CircleShape))
+            }
+        }
+    }
+}
+
