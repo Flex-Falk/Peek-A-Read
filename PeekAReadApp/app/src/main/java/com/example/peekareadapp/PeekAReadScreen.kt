@@ -50,6 +50,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.provider.Settings
+import android.speech.tts.TextToSpeech
 import android.util.Log
 import androidx.camera.core.CameraSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -74,6 +75,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.AndroidView
 import java.text.SimpleDateFormat
 import java.util.Locale
+
 
 
 /**
@@ -229,6 +231,26 @@ fun PeekAReadApp(
             composable(route = PeekAReadScreen.Text.name) {
                 var sliderPosition by remember { mutableStateOf(0f) } // Initialize with the default value (aka 0)
 
+                //text-to-speech context
+                val context = LocalContext.current
+                var textToSpeech: TextToSpeech? by remember{ mutableStateOf(null) }
+                // text to read aloud
+                var readText = stringResource(R.string.LoremIpsum)
+
+                DisposableEffect(Unit){
+                    textToSpeech = TextToSpeech(context){ status ->
+                        if(status == TextToSpeech.SUCCESS) {
+                            textToSpeech?.language = Locale.GERMAN
+                        }
+                    }
+
+                    onDispose {
+                        textToSpeech?.stop()
+                        textToSpeech?.shutdown()
+                    }
+                }
+
+
                 Scaffold(
                     bottomBar = {
                         BottomAppBar(
@@ -251,7 +273,15 @@ fun PeekAReadApp(
                             },
                             floatingActionButton = {
                                 FloatingActionButton(
-                                    onClick = { /* read the text */ },
+                                    onClick = {
+                                        //text-to-speech
+                                        textToSpeech?.speak(
+                                            readText,
+                                            TextToSpeech.QUEUE_FLUSH,
+                                            null,
+                                            null
+                                        )
+                                    },
                                     containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
                                     elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
                                 ) {
@@ -330,7 +360,9 @@ fun CameraPreview(context: Context, lifecycleOwner: LifecycleOwner, navControlle
                 onClick = { takePhoto(imageCapture, context, navController) }
             ) {
                 Icon(Icons.Filled.Add, "Take photo", tint = Color.White,
-                    modifier = Modifier.size(80.dp).border(1.dp, Color.White, CircleShape))
+                    modifier = Modifier
+                        .size(80.dp)
+                        .border(1.dp, Color.White, CircleShape))
             }
         }
     }
