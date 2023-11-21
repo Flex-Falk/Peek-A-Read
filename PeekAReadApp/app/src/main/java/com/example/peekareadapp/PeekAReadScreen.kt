@@ -75,7 +75,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.AndroidView
 import java.text.SimpleDateFormat
 import java.util.Locale
-
+import androidx.compose.foundation.Image
+import coil.compose.rememberImagePainter
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.text.TextRecognition
+import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import java.io.IOException
 
 
 /**
@@ -91,6 +96,7 @@ enum class PeekAReadScreen(@StringRes val title: Int) {
 }
 
 var alreadyAskedForPreferences: Boolean = false
+lateinit var imageUri: Uri
 
 
 /**
@@ -217,12 +223,41 @@ fun PeekAReadApp(
                 }
             }
             composable(route = PeekAReadScreen.Scan.name) {
+                val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+                val context = LocalContext.current
+
+                val image: InputImage
+                try {
+                    image = InputImage.fromFilePath(context, imageUri)
+                    val result = recognizer.process(image)
+                        .addOnSuccessListener { visionText ->
+                            // Task completed successfully
+                            val resultText = visionText.text
+                            Log.i("Scan", resultText)
+                        }
+                        .addOnFailureListener { e ->
+                            // Task failed with an exception
+                            val msg = "Capture failed: ${e.message}"
+                            Log.i("Scan", msg)
+                        }
+
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                }
+
+
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.SpaceEvenly,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ){
-                    Text(text = "Hier werden Elemente aus dem geschossenen Bild ausgewählt.")
+//                    Text(text = "Hier werden Elemente aus dem geschossenen Bild ausgewählt.")
+                    Image(
+                        modifier = Modifier
+                            .padding(16.dp, 8.dp),
+                        painter = rememberImagePainter(imageUri),
+                        contentDescription = null
+                    )
                     FloatingActionButton(onClick =  { navController.navigate(PeekAReadScreen.Text.name) }){
                         Icon(Icons.Filled.Add, "Floating action button.")
                     }
@@ -398,6 +433,7 @@ fun takePhoto(imageCapture: ImageCapture, context: Context, navController: NavHo
 
             override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                 val msg = "Captured: ${output.savedUri}"
+                imageUri = output.savedUri!!
                 Log.i("Capture",msg)
                 navController.navigate(PeekAReadScreen.Scan.name)
 
