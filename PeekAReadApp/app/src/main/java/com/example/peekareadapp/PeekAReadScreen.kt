@@ -43,10 +43,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import android.Manifest
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
 import android.provider.Settings
+import android.util.Log
 import androidx.camera.core.CameraSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -60,16 +64,16 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import com.google.accompanist.permissions.PermissionState
-import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
-import androidx.camera.core.ImageProxy
+import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.AndroidView
-import com.google.common.util.concurrent.ListenableFuture
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 
 /**
@@ -200,11 +204,11 @@ fun PeekAReadApp(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         //Text(text = "Hier wird die App in der Kameraansicht gestartet.")
-                        CameraPreview(context = context, lifecycleOwner = lifecycleOwner)
+                        CameraPreview(context = context, lifecycleOwner = lifecycleOwner, navController = navController)
 
-                        FloatingActionButton(onClick = { navController.navigate(PeekAReadScreen.Scan.name) }) {
-                            Icon(Icons.Filled.Add, "Floating action button.")
-                        }
+//                        FloatingActionButton(onClick = { navController.navigate(PeekAReadScreen.Scan.name) }) {
+//                            Icon(Icons.Filled.Add, "Floating action button.")
+//                        }
                     }
                 } else {
                     handleMissingCameraPermission(LocalContext.current, cameraPermissionState)
@@ -283,7 +287,7 @@ fun PeekAReadApp(
 }
 
 @Composable
-fun CameraPreview(context: Context, lifecycleOwner: LifecycleOwner){
+fun CameraPreview(context: Context, lifecycleOwner: LifecycleOwner, navController: NavHostController){
     val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
     var preview by remember { mutableStateOf<Preview?>(null) }
     val executor = ContextCompat.getMainExecutor(context)
@@ -323,12 +327,50 @@ fun CameraPreview(context: Context, lifecycleOwner: LifecycleOwner){
         ){
             IconButton(
                 modifier = Modifier.padding(bottom = 20.dp),
-                onClick = { /*TODO*/ }
+                onClick = { takePhoto(imageCapture, context, navController) }
             ) {
                 Icon(Icons.Filled.Add, "Take photo", tint = Color.White,
                     modifier = Modifier.size(80.dp).border(1.dp, Color.White, CircleShape))
             }
         }
     }
+}
+
+fun takePhoto(imageCapture: ImageCapture, context: Context, navController: NavHostController) {
+
+    val name = SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS", Locale.US)
+        .format(System.currentTimeMillis())
+    val contentValues = ContentValues().apply {
+        put(MediaStore.MediaColumns.DISPLAY_NAME, name)
+        put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+        if(Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+            put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/CameraX-Image")
+        }
+    }
+
+    // Create output options object which contains file + metadata
+    val outputOptions = ImageCapture.OutputFileOptions
+        .Builder(context.contentResolver,
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            contentValues)
+        .build()
+
+    imageCapture.takePicture(
+        outputOptions,
+        ContextCompat.getMainExecutor(context),
+        object : ImageCapture.OnImageSavedCallback {
+            override fun onError(exc: ImageCaptureException) {
+                val msg = "Capture failed: ${exc.message}"
+                Log.i("Capture",msg)
+            }
+
+            override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                val msg = "Captured: ${output.savedUri}"
+                Log.i("Capture",msg)
+                navController.navigate(PeekAReadScreen.Scan.name)
+
+            }
+        }
+    )
 }
 
