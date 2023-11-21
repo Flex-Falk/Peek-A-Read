@@ -24,8 +24,6 @@
   <component name="ChangeListManager">
     <list default="true" id="d819235e-57d1-489e-822f-3da6fb60f7c2" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PeekAReadApp/app/src/main/java/com/example/peekareadapp/Color.kt" beforeDir="false" afterPath="$PROJECT_DIR$/PeekAReadApp/app/src/main/java/com/example/peekareadapp/Color.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PeekAReadApp/app/src/main/java/com/example/peekareadapp/Theme.kt" beforeDir="false" afterPath="$PROJECT_DIR$/PeekAReadApp/app/src/main/java/com/example/peekareadapp/Theme.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -69,5 +67,12 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="93" y="93" width="1095" height="487" key="AVDManager" timestamp="1700567386895">
+      <screen x="0" y="0" width="1280" height="672" />
+    </state>
+    <state x="93" y="93" width="1095" height="487" key="AVDManager/0.0.1280.672@0.0.1280.672" timestamp="1700567386895" />
   </component>
 </project>
