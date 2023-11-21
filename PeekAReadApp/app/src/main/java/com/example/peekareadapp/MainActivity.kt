@@ -21,12 +21,3 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
-@Composable
-fun PeekAReadTheme(content: @Composable (PaddingValues) -> Unit) {
-    MaterialTheme {
-        Surface {
-            content(PaddingValues(0.dp))
-        }
-    }
-}
