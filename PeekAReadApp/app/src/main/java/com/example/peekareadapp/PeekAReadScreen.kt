@@ -184,16 +184,29 @@ fun PeekAReadApp(
         backStackEntry?.destination?.route ?: PeekAReadScreen.Start.name
     )
 
-    fun loadPreferences() {
-        // dropdownValue1 = loadedValue1
-        // dropdownValue2 = loadedValue2
-        // dropdownValue3 = loadedValue3
+    val context = LocalContext.current
+
+    val sharedPreferences = remember {
+        context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
     }
 
+    var preferences_fontType by remember { mutableStateOf("Arial") }
+    var preferences_darkmode by remember { mutableStateOf(false) }
+    val options = listOf("Arial", "Helvetica", "Unit")
+
+    // Load font type and dark mode boolean from SharedPreferences
+    fun loadPreferences() {
+        preferences_fontType = sharedPreferences.getString("fontType", options[0]) ?: options[0]
+        preferences_darkmode = sharedPreferences.getBoolean("darkMode", false)
+    }
+
+    // Save font type and dark mode boolean to SharedPreferences
     fun savePreferences() {
-        // saveToSharedPreferences("key1", dropdownValue1)
-        // saveToSharedPreferences("key2", dropdownValue2)
-        // saveToSharedPreferences("key3", dropdownValue3)
+        with(sharedPreferences.edit()) {
+            putString("fontType", preferences_fontType)
+            putBoolean("darkMode", preferences_darkmode)
+            apply()
+        }
     }
 
     DisposableEffect(Unit) {
@@ -356,8 +369,6 @@ fun PeekAReadApp(
                 }
             }
             composable(route = PeekAReadScreen.Preferences.name) {
-                var preferences_fontType by remember { mutableStateOf("Default") }
-                var preferences_darkmode by remember { mutableStateOf(false) }
 
                 Column(
                     modifier = Modifier
@@ -375,9 +386,7 @@ fun PeekAReadApp(
 
                     Spacer(modifier = Modifier.height(40.dp))
 
-                    val options = listOf("Sans-Serif", "Serif")
                     var expanded by remember { mutableStateOf(false) }
-                    var preferences_fontType by remember { mutableStateOf(options[0]) }
 
                     ExposedDropdownMenuBox(
                         expanded = expanded,
