@@ -81,6 +81,9 @@ import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import java.io.IOException
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.TextField
 
 
 /**
@@ -92,12 +95,10 @@ enum class PeekAReadScreen(@StringRes val title: Int) {
     Text(title = R.string.TextScreen),
     Preferences(title = R.string.PreferencesScreen),
     Start(title = R.string.app_name)
-
 }
 
 var alreadyAskedForPreferences: Boolean = false
 lateinit var imageUri: Uri
-
 
 /**
  * Composable that displays the topBar and displays back button if back navigation is possible.
@@ -171,10 +172,10 @@ fun handleMissingCameraPermission(context: Context, cameraPermissionState: Permi
     }
 }
 
-@OptIn(ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun PeekAReadApp(
-    navController: NavHostController = rememberNavController()
+    navController: NavHostController = rememberNavController(),
 ) {
     // Get current back stack entry
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -183,6 +184,24 @@ fun PeekAReadApp(
         backStackEntry?.destination?.route ?: PeekAReadScreen.Start.name
     )
 
+    fun loadPreferences() {
+        // dropdownValue1 = loadedValue1
+        // dropdownValue2 = loadedValue2
+        // dropdownValue3 = loadedValue3
+    }
+
+    fun savePreferences() {
+        // saveToSharedPreferences("key1", dropdownValue1)
+        // saveToSharedPreferences("key2", dropdownValue2)
+        // saveToSharedPreferences("key3", dropdownValue3)
+    }
+
+    DisposableEffect(Unit) {
+        loadPreferences()
+        onDispose {
+            savePreferences()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -284,8 +303,6 @@ fun PeekAReadApp(
                         textToSpeech?.shutdown()
                     }
                 }
-
-
                 Scaffold(
                     bottomBar = {
                         BottomAppBar(
@@ -339,18 +356,64 @@ fun PeekAReadApp(
                 }
             }
             composable(route = PeekAReadScreen.Preferences.name) {
+                var preferences_fontType by remember { mutableStateOf("Default") }
+                var preferences_darkmode by remember { mutableStateOf(false) }
+
                 Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.SpaceEvenly,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ){
-                    Text(text = "Hier kann man Präferenzen ändern.")
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                ) {
+                    Text("Dunkelmodus aktiviert")
+
+                    Switch(
+                        checked = preferences_darkmode,
+                        onCheckedChange = {
+                            preferences_darkmode = it
+                        }
+                    )
+
+                    Spacer(modifier = Modifier.height(40.dp))
+
+                    val options = listOf("Sans-Serif", "Serif")
+                    var expanded by remember { mutableStateOf(false) }
+                    var preferences_fontType by remember { mutableStateOf(options[0]) }
+
+                    ExposedDropdownMenuBox(
+                        expanded = expanded,
+                        onExpandedChange = { expanded = !expanded },
+                    ) {
+                        TextField(
+                            // The `menuAnchor` modifier must be passed to the text field for correctness.
+                            modifier = Modifier.menuAnchor(),
+                            readOnly = true,
+                            value = preferences_fontType,
+                            onValueChange = {},
+                            label = { Text("Schriftart") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                            colors = ExposedDropdownMenuDefaults.textFieldColors(),
+                        )
+                        ExposedDropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false },
+                        ) {
+                            options.forEach { selectionOption ->
+                                DropdownMenuItem(
+                                    text = { Text(selectionOption) },
+                                    onClick = {
+                                        preferences_fontType = selectionOption
+                                        expanded = false
+                                    },
+                                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
     }
 }
-
 @Composable
 fun CameraPreview(context: Context, lifecycleOwner: LifecycleOwner, navController: NavHostController){
     val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
