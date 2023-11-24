@@ -84,6 +84,7 @@ import java.io.IOException
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.TextField
+import androidx.compose.foundation.isSystemInDarkTheme
 
 
 /**
@@ -216,205 +217,214 @@ fun PeekAReadApp(
         }
     }
 
-    Scaffold(
-        topBar = {
-            PeekAReadAppBar(
-                currentScreen = currentScreen,
-                canNavigateBack = navController.previousBackStackEntry != null,
-                navigateUp = { navController.navigateUp() },
-                navigateToPreferences = { navController.navigate(PeekAReadScreen.Preferences.name)},
-                isPreferencesButtonEnabled = currentScreen != PeekAReadScreen.Preferences
-            )
-        }
-    ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = PeekAReadScreen.Camera.name,
-            modifier = Modifier.padding(innerPadding)
-        ) {
-            composable(route = PeekAReadScreen.Camera.name) {
-                val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
-                val context = LocalContext.current
-                val lifecycleOwner = LocalLifecycleOwner.current
+    MaterialTheme(
+        colorScheme = if (preferences_darkmode || isSystemInDarkTheme()) DarkColors else LightColors,
+        typography = MaterialTheme.typography,
+        shapes = MaterialTheme.shapes,
+    ) {
+        Scaffold(
+            topBar = {
+                PeekAReadAppBar(
+                    currentScreen = currentScreen,
+                    canNavigateBack = navController.previousBackStackEntry != null,
+                    navigateUp = { navController.navigateUp() },
+                    navigateToPreferences = { navController.navigate(PeekAReadScreen.Preferences.name)},
+                    isPreferencesButtonEnabled = currentScreen != PeekAReadScreen.Preferences
+                )
+            }
+        ) { innerPadding ->
+            NavHost(
+                navController = navController,
+                startDestination = PeekAReadScreen.Camera.name,
+                modifier = Modifier.padding(innerPadding)
+            ) {
+                composable(route = PeekAReadScreen.Camera.name) {
+                    val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
+                    val context = LocalContext.current
+                    val lifecycleOwner = LocalLifecycleOwner.current
 
-                if (cameraPermissionState.status.isGranted) {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.SpaceEvenly,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        //Text(text = "Hier wird die App in der Kameraansicht gestartet.")
-                        CameraPreview(context = context, lifecycleOwner = lifecycleOwner, navController = navController)
+                    if (cameraPermissionState.status.isGranted) {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.SpaceEvenly,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            //Text(text = "Hier wird die App in der Kameraansicht gestartet.")
+                            CameraPreview(context = context, lifecycleOwner = lifecycleOwner, navController = navController)
 
 //                        FloatingActionButton(onClick = { navController.navigate(PeekAReadScreen.Scan.name) }) {
 //                            Icon(Icons.Filled.Add, "Floating action button.")
 //                        }
+                        }
+                    } else {
+                        handleMissingCameraPermission(LocalContext.current, cameraPermissionState)
                     }
-                } else {
-                    handleMissingCameraPermission(LocalContext.current, cameraPermissionState)
                 }
-            }
-            composable(route = PeekAReadScreen.Scan.name) {
-                val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-                val context = LocalContext.current
+                composable(route = PeekAReadScreen.Scan.name) {
+                    val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+                    val context = LocalContext.current
 
-                val image: InputImage
-                try {
-                    image = InputImage.fromFilePath(context, imageUri)
-                    val result = recognizer.process(image)
-                        .addOnSuccessListener { visionText ->
-                            // Task completed successfully
-                            val resultText = visionText.text
-                            Log.i("Scan", resultText)
-                        }
-                        .addOnFailureListener { e ->
-                            // Task failed with an exception
-                            val msg = "Capture failed: ${e.message}"
-                            Log.i("Scan", msg)
-                        }
+                    val image: InputImage
+                    try {
+                        image = InputImage.fromFilePath(context, imageUri)
+                        val result = recognizer.process(image)
+                            .addOnSuccessListener { visionText ->
+                                // Task completed successfully
+                                val resultText = visionText.text
+                                Log.i("Scan", resultText)
+                            }
+                            .addOnFailureListener { e ->
+                                // Task failed with an exception
+                                val msg = "Capture failed: ${e.message}"
+                                Log.i("Scan", msg)
+                            }
 
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                }
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                    }
 
 
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.SpaceEvenly,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ){
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.SpaceEvenly,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ){
 //                    Text(text = "Hier werden Elemente aus dem geschossenen Bild ausgewählt.")
-                    Image(
-                        modifier = Modifier
-                            .padding(16.dp, 8.dp),
-                        painter = rememberImagePainter(imageUri),
-                        contentDescription = null
-                    )
-                    FloatingActionButton(onClick =  { navController.navigate(PeekAReadScreen.Text.name) }){
-                        Icon(Icons.Filled.Add, "Floating action button.")
-                    }
-                }
-            }
-            composable(route = PeekAReadScreen.Text.name) {
-                var sliderPosition by remember { mutableStateOf(0f) } // Initialize with the default value (aka 0)
-
-                //text-to-speech context
-                val context = LocalContext.current
-                var textToSpeech: TextToSpeech? by remember{ mutableStateOf(null) }
-                // text to read aloud
-                var readText = stringResource(R.string.LoremIpsum)
-
-                DisposableEffect(Unit){
-                    textToSpeech = TextToSpeech(context){ status ->
-                        if(status == TextToSpeech.SUCCESS) {
-                            textToSpeech?.language = Locale.GERMAN
+                        Image(
+                            modifier = Modifier
+                                .padding(16.dp, 8.dp),
+                            painter = rememberImagePainter(imageUri),
+                            contentDescription = null
+                        )
+                        FloatingActionButton(onClick =  { navController.navigate(PeekAReadScreen.Text.name) }){
+                            Icon(Icons.Filled.Add, "Floating action button.")
                         }
                     }
+                }
+                composable(route = PeekAReadScreen.Text.name) {
+                    var sliderPosition by remember { mutableStateOf(0f) } // Initialize with the default value (aka 0)
 
-                    onDispose {
-                        textToSpeech?.stop()
-                        textToSpeech?.shutdown()
+                    //text-to-speech context
+                    val context = LocalContext.current
+                    var textToSpeech: TextToSpeech? by remember{ mutableStateOf(null) }
+                    // text to read aloud
+                    var readText = stringResource(R.string.LoremIpsum)
+
+                    DisposableEffect(Unit){
+                        textToSpeech = TextToSpeech(context){ status ->
+                            if(status == TextToSpeech.SUCCESS) {
+                                textToSpeech?.language = Locale.GERMAN
+                            }
+                        }
+
+                        onDispose {
+                            textToSpeech?.stop()
+                            textToSpeech?.shutdown()
+                        }
+                    }
+                    Scaffold(
+                        bottomBar = {
+                            BottomAppBar(
+                                actions = {
+                                    IconButton(onClick = {sliderPosition -= 0.1f}) {
+                                        Icon(painterResource(id = R.drawable.baseline_text_decrease_24), "Localized description")
+                                    }
+                                    Slider(
+                                        value = sliderPosition,
+                                        onValueChange = { newValue -> sliderPosition = newValue },
+                                        modifier = Modifier
+                                            .padding(8.dp)
+                                            .height(40.dp)
+                                            .width(150.dp)
+                                    )
+
+                                    IconButton(onClick = {sliderPosition += 0.1f}) {
+                                        Icon(painterResource(id = R.drawable.baseline_text_increase_24), "Localized description")
+                                    }
+                                },
+                                floatingActionButton = {
+                                    FloatingActionButton(
+                                        onClick = {
+                                            //text-to-speech
+                                            textToSpeech?.speak(
+                                                readText,
+                                                TextToSpeech.QUEUE_FLUSH,
+                                                null,
+                                                null
+                                            )
+                                        },
+                                        containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
+                                        elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
+                                    ) {
+                                        Icon(painterResource(id = R.drawable.baseline_volume_up_24), "Localized description")
+                                    }
+                                }
+                            )
+                        },
+                    ) { innerPadding ->
+
+                        val fontSize = (16 * sliderPosition + 20).sp // Adjust the base size (16) based on the slider position
+                        val lineHeight = fontSize * 1.25
+
+                        Text(
+                            modifier = Modifier.padding(innerPadding),
+                            text = stringResource(R.string.LoremIpsum),
+                            fontSize = fontSize,
+                            lineHeight = lineHeight
+                        )
                     }
                 }
-                Scaffold(
-                    bottomBar = {
-                        BottomAppBar(
-                            actions = {
-                                IconButton(onClick = {sliderPosition -= 0.1f}) {
-                                    Icon(painterResource(id = R.drawable.baseline_text_decrease_24), "Localized description")
-                                }
-                                Slider(
-                                    value = sliderPosition,
-                                    onValueChange = { newValue -> sliderPosition = newValue },
-                                    modifier = Modifier
-                                        .padding(8.dp)
-                                        .height(40.dp)
-                                        .width(150.dp)
-                                )
+                composable(route = PeekAReadScreen.Preferences.name) {
 
-                                IconButton(onClick = {sliderPosition += 0.1f}) {
-                                    Icon(painterResource(id = R.drawable.baseline_text_increase_24), "Localized description")
-                                }
-                            },
-                            floatingActionButton = {
-                                FloatingActionButton(
-                                    onClick = {
-                                        //text-to-speech
-                                        textToSpeech?.speak(
-                                            readText,
-                                            TextToSpeech.QUEUE_FLUSH,
-                                            null,
-                                            null
-                                        )
-                                    },
-                                    containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
-                                    elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
-                                ) {
-                                    Icon(painterResource(id = R.drawable.baseline_volume_up_24), "Localized description")
-                                }
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp)
+                    ) {
+                        Text("Dunkelmodus aktiviert")
+
+                        Switch(
+                            checked = preferences_darkmode,
+                            onCheckedChange = {
+                                preferences_darkmode = it
+                                // Save the updated dark mode preference
+                                savePreferences()
                             }
                         )
-                    },
-                ) { innerPadding ->
 
-                    val fontSize = (16 * sliderPosition + 20).sp // Adjust the base size (16) based on the slider position
-                    val lineHeight = fontSize * 1.25
 
-                    Text(
-                        modifier = Modifier.padding(innerPadding),
-                        text = stringResource(R.string.LoremIpsum),
-                        fontSize = fontSize,
-                        lineHeight = lineHeight
-                    )
-                }
-            }
-            composable(route = PeekAReadScreen.Preferences.name) {
+                        Spacer(modifier = Modifier.height(40.dp))
 
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp)
-                ) {
-                    Text("Dunkelmodus aktiviert")
+                        var expanded by remember { mutableStateOf(false) }
 
-                    Switch(
-                        checked = preferences_darkmode,
-                        onCheckedChange = {
-                            preferences_darkmode = it
-                        }
-                    )
-
-                    Spacer(modifier = Modifier.height(40.dp))
-
-                    var expanded by remember { mutableStateOf(false) }
-
-                    ExposedDropdownMenuBox(
-                        expanded = expanded,
-                        onExpandedChange = { expanded = !expanded },
-                    ) {
-                        TextField(
-                            // The `menuAnchor` modifier must be passed to the text field for correctness.
-                            modifier = Modifier.menuAnchor(),
-                            readOnly = true,
-                            value = preferences_fontType,
-                            onValueChange = {},
-                            label = { Text("Schriftart") },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                            colors = ExposedDropdownMenuDefaults.textFieldColors(),
-                        )
-                        ExposedDropdownMenu(
+                        ExposedDropdownMenuBox(
                             expanded = expanded,
-                            onDismissRequest = { expanded = false },
+                            onExpandedChange = { expanded = !expanded },
                         ) {
-                            options.forEach { selectionOption ->
-                                DropdownMenuItem(
-                                    text = { Text(selectionOption) },
-                                    onClick = {
-                                        preferences_fontType = selectionOption
-                                        expanded = false
-                                    },
-                                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                                )
+                            TextField(
+                                // The `menuAnchor` modifier must be passed to the text field for correctness.
+                                modifier = Modifier.menuAnchor(),
+                                readOnly = true,
+                                value = preferences_fontType,
+                                onValueChange = {},
+                                label = { Text("Schriftart") },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                                colors = ExposedDropdownMenuDefaults.textFieldColors(),
+                            )
+                            ExposedDropdownMenu(
+                                expanded = expanded,
+                                onDismissRequest = { expanded = false },
+                            ) {
+                                options.forEach { selectionOption ->
+                                    DropdownMenuItem(
+                                        text = { Text(selectionOption) },
+                                        onClick = {
+                                            preferences_fontType = selectionOption
+                                            expanded = false
+                                        },
+                                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                                    )
+                                }
                             }
                         }
                     }
