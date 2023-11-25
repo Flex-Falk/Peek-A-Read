@@ -85,6 +85,9 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.TextField
 import androidx.compose.foundation.isSystemInDarkTheme
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 /**
@@ -304,11 +307,14 @@ fun PeekAReadApp(
                 composable(route = PeekAReadScreen.Text.name) {
                     var sliderPosition by remember { mutableStateOf(0f) } // Initialize with the default value (aka 0)
 
+
                     //text-to-speech context
                     val context = LocalContext.current
                     var textToSpeech: TextToSpeech? by remember{ mutableStateOf(null) }
                     // text to read aloud
                     var readText = stringResource(R.string.LoremIpsum)
+
+                    var isSpeaking by remember { mutableStateOf(false) }
 
                     DisposableEffect(Unit){
                         textToSpeech = TextToSpeech(context){ status ->
@@ -322,6 +328,7 @@ fun PeekAReadApp(
                             textToSpeech?.shutdown()
                         }
                     }
+
                     Scaffold(
                         bottomBar = {
                             BottomAppBar(
@@ -346,17 +353,41 @@ fun PeekAReadApp(
                                     FloatingActionButton(
                                         onClick = {
                                             //text-to-speech
-                                            textToSpeech?.speak(
-                                                readText,
-                                                TextToSpeech.QUEUE_FLUSH,
-                                                null,
-                                                null
-                                            )
+                                            if (isSpeaking) {
+                                                // Stop text-to-speech if it's speaking
+                                                textToSpeech?.stop()
+                                                isSpeaking = false
+                                            } else {
+                                                val utteranceId = "peekAReadUtterance"
+                                                // Start text-to-speech
+                                                textToSpeech?.speak(
+                                                    readText,
+                                                    TextToSpeech.QUEUE_FLUSH,
+                                                    null,
+                                                    utteranceId
+                                                )
+
+                                                GlobalScope.launch {
+                                                    while (textToSpeech?.isSpeaking() == true) {
+                                                        delay(100) // Adjust the delay based on your needs
+                                                    }
+
+                                                    // Toggle isSpeaking state after speech is done
+                                                    isSpeaking = false
+                                                }
+
+                                                isSpeaking = true
+                                            }
                                         },
                                         containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
                                         elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
                                     ) {
-                                        Icon(painterResource(id = R.drawable.baseline_volume_up_24), "Localized description")
+                                        val iconResourceId = if (isSpeaking) {
+                                            R.drawable.baseline_volume_off_24
+                                        } else {
+                                            R.drawable.baseline_volume_up_24
+                                        }
+                                        Icon(painterResource(id = iconResourceId), "Toggle Text-to-Speech")
                                     }
                                 }
                             )
