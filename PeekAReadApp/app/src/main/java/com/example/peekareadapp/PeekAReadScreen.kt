@@ -46,6 +46,7 @@ import android.Manifest
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
@@ -69,6 +70,7 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.view.PreviewView
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.graphics.Color
@@ -85,9 +87,12 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.TextField
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.compose.ui.graphics.drawscope.Stroke
 
 
 /**
@@ -267,42 +272,73 @@ fun PeekAReadApp(
                     val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
                     val context = LocalContext.current
 
-                    val image: InputImage
-                    try {
-                        image = InputImage.fromFilePath(context, imageUri)
-                        val result = recognizer.process(image)
-                            .addOnSuccessListener { visionText ->
-                                // Task completed successfully
-                                val resultText = visionText.text
-                                Log.i("Scan", resultText)
-                            }
-                            .addOnFailureListener { e ->
-                                // Task failed with an exception
-                                val msg = "Capture failed: ${e.message}"
-                                Log.i("Scan", msg)
-                            }
 
-                    } catch (e: IOException) {
-                        e.printStackTrace()
+                    var recognizedTextBlocks by remember { mutableStateOf<List<Rect>>(emptyList()) }
+
+                    LaunchedEffect(imageUri) {
+                        try {
+                            val image = InputImage.fromFilePath(context, imageUri)
+                            var blockFrameList = mutableListOf<Rect>()
+                            val result = recognizer.process(image)
+                                .addOnSuccessListener { visionText ->
+                                    // Task completed successfully
+                                    val resultText = visionText.text
+                                    Log.i("Scan", resultText)
+                                    for (block in visionText.textBlocks) {
+                                        val blockText = block.text
+                                        val blockCornerPoints = block.cornerPoints
+                                        val blockFrame = block.boundingBox
+                                        blockFrameList.add(blockFrame!!)
+
+                                    }
+                                    recognizedTextBlocks = blockFrameList
+                                    Log.i("List", recognizedTextBlocks.toString())
+
+                                }
+                                .addOnFailureListener { e ->
+                                    // Task failed with an exception
+                                    val msg = "Capture failed: ${e.message}"
+                                    Log.i("Scan", msg)
+                                }
+
+                        } catch (e: IOException) {
+                            e.printStackTrace()
+                        }
+
                     }
 
+                    Box(modifier = Modifier.fillMaxHeight()){
 
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.SpaceEvenly,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ){
-//                    Text(text = "Hier werden Elemente aus dem geschossenen Bild ausgewählt.")
-                        Image(
-                            modifier = Modifier
-                                .padding(16.dp, 8.dp),
-                            painter = rememberImagePainter(imageUri),
-                            contentDescription = null
-                        )
-                        FloatingActionButton(onClick =  { navController.navigate(PeekAReadScreen.Text.name) }){
-                            Icon(Icons.Filled.Add, "Floating action button.")
+                        Image(modifier = Modifier.fillMaxHeight(), painter = rememberImagePainter(imageUri), contentDescription = null)
+
+                        Canvas(modifier = Modifier.fillMaxHeight()){
+                            recognizedTextBlocks.forEach{block ->
+                                Log.i("block", block.toString())
+                                drawRect(color = Color.Red, topLeft = Offset(block.left.toFloat(), block.top.toFloat()),
+                                    size = Size(block.width().toFloat(), block.height().toFloat()), style = Stroke(width = 6.dp.toPx())
+                                )
+                            }
                         }
                     }
+
+
+//
+//                    Column(
+//                        modifier = Modifier.fillMaxSize(),
+//                        verticalArrangement = Arrangement.SpaceEvenly,
+//                        horizontalAlignment = Alignment.CenterHorizontally
+//                    ){
+////                    Text(text = "Hier werden Elemente aus dem geschossenen Bild ausgewählt.")
+//                        Image(
+//                            modifier = Modifier
+//                                .padding(16.dp, 8.dp),
+//                            painter = rememberImagePainter(imageUri),
+//                            contentDescription = null
+//                        )
+//                        FloatingActionButton(onClick =  { navController.navigate(PeekAReadScreen.Text.name) }){
+//                            Icon(Icons.Filled.Add, "Floating action button.")
+//                        }
+//                    }
                 }
                 composable(route = PeekAReadScreen.Text.name) {
                     var sliderPosition by remember { mutableStateOf(0f) } // Initialize with the default value (aka 0)
