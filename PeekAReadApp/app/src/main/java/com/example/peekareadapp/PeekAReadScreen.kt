@@ -87,12 +87,14 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.TextField
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.ImageVector
 
 
 /**
@@ -181,6 +183,40 @@ fun handleMissingCameraPermission(context: Context, cameraPermissionState: Permi
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AlertDialogExample(
+    onDismissRequest: () -> Unit,
+    onConfirmation: () -> Unit,
+    dialogTitle: String,
+    dialogText: String,
+    icon: ImageVector,
+) {
+    AlertDialog(
+        icon = {
+            Icon(icon, contentDescription = "Example Icon")
+        },
+        title = {
+            Text(text = dialogTitle)
+        },
+        text = {
+            Text(text = dialogText)
+        },
+        onDismissRequest = {
+            onDismissRequest()
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    onConfirmation()
+                }
+            ) {
+                Text("Verstanden")
+            }
+        }
+    )
+}
+
 @OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun PeekAReadApp(
@@ -203,6 +239,10 @@ fun PeekAReadApp(
     var preferences_darkmode by remember { mutableStateOf(false) }
     val options = listOf("Arial", "Helvetica", "Unit")
 
+    //Mutable state variable to show dialog
+    val openAlertDialog = remember { mutableStateOf(false) }
+    var dialogRefresh = 0 //debugging variable - needs to be deleted later when the bug if removed
+
     // Load font type and dark mode boolean from SharedPreferences
     fun loadPreferences() {
         preferences_fontType = sharedPreferences.getString("fontType", options[0]) ?: options[0]
@@ -215,6 +255,23 @@ fun PeekAReadApp(
             putString("fontType", preferences_fontType)
             putBoolean("darkMode", preferences_darkmode)
             apply()
+        }
+    }
+
+    //Show the error message when state set to true
+    when{
+        (openAlertDialog.value) -> {
+            AlertDialogExample(
+                onDismissRequest = { openAlertDialog.value = false },
+                onConfirmation = {
+                    openAlertDialog.value = false
+                    println("Confirmation registered") // Add logic here to handle confirmation.
+                    navController.navigateUp()
+                },
+                dialogTitle = "Kein Text erkannt",
+                dialogText = "Tipps:\n\u25CF Beleuchtung verbessern\n\u25CF Handy stabil halten\n\u25CF Falten glätten",
+                icon = Icons.Default.Info
+            )
         }
     }
 
@@ -283,7 +340,17 @@ fun PeekAReadApp(
                                 .addOnSuccessListener { visionText ->
                                     // Task completed successfully
                                     val resultText = visionText.text
-                                    Log.i("Scan", resultText)
+
+                                    //Check if recognized text is empty, then trigger error message
+                                    if (resultText.isBlank() && dialogRefresh == 0){
+                                        Log.i("Scan", "No text recognized!")
+                                        openAlertDialog.value = true
+                                        dialogRefresh++
+                                        Log.i("Scan", dialogRefresh.toString())
+                                    }else{
+                                        Log.i("Scan", resultText)
+                                    }
+                                    //
                                     for (block in visionText.textBlocks) {
                                         val blockText = block.text
                                         val blockCornerPoints = block.cornerPoints
