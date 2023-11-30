@@ -95,6 +95,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 
@@ -319,9 +320,7 @@ fun PeekAReadApp(
                             //Text(text = "Hier wird die App in der Kameraansicht gestartet.", fontSize = 30.sp, lineHeight = 45.sp, textAlign = TextAlign.Center)
                             CameraPreview(context = context, lifecycleOwner = lifecycleOwner, navController = navController)
 
-//                        FloatingActionButton(onClick = { navController.navigate(PeekAReadScreen.Scan.name) }) {
-//                            Icon(Icons.Filled.Add, "Floating action button.")
-//                        }
+
                         }
                     } else {
                         handleMissingCameraPermission(LocalContext.current, cameraPermissionState)
@@ -609,14 +608,11 @@ fun CameraPreview(context: Context, lifecycleOwner: LifecycleOwner, navControlle
             modifier = Modifier.align(Alignment.BottomCenter),
             verticalArrangement = Arrangement.Bottom
         ){
-            IconButton(
-                modifier = Modifier.padding(bottom = 20.dp),
-                onClick = { takePhoto(imageCapture, context, navController) }
-            ) {
-                Icon(Icons.Filled.Add, "Take photo", tint = Color.White,
-                    modifier = Modifier
-                        .size(80.dp)
-                        .border(1.dp, Color.White, CircleShape))
+            FloatingActionButton(modifier = Modifier.padding(bottom = 20.dp).size(80.dp), onClick = { takePhoto(imageCapture, context, navController) }) {
+                  Icon(imageVector = ImageVector.vectorResource(id = R.drawable.camera_icon),
+                      "Take photo",
+                      modifier = Modifier.size(50.dp)
+                  )
             }
         }
     }
