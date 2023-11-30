@@ -493,7 +493,11 @@ fun PeekAReadApp(
                         },
                     ) { innerPadding ->
 
-                        val fontSize = (16 * sliderPosition + 20).sp // Adjust the base size (16) based on the slider position
+                        var fontSizeValue = (16 * sliderPosition + 20)
+                        if (fontSizeValue <= 20){
+                            fontSizeValue = 20F
+                        }
+                        val fontSize = fontSizeValue.sp // Adjust the base size (16) based on the slider position
                         val lineHeight = fontSize * 1.25
 
                         Text(
