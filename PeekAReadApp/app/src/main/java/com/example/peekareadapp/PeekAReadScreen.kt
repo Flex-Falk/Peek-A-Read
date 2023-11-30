@@ -87,6 +87,8 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.TextField
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -442,9 +444,10 @@ fun PeekAReadApp(
                                         modifier = Modifier
                                             .padding(8.dp)
                                             .height(40.dp)
-                                            .width(150.dp)
+                                            .width(150.dp),
+                                    valueRange = 0.0f..2.0f,
+                                    steps = 100
                                     )
-
                                     IconButton(onClick = {sliderPosition += 0.1f}) {
                                         Icon(painterResource(id = R.drawable.baseline_text_increase_24), "Localized description")
                                     }
@@ -500,13 +503,18 @@ fun PeekAReadApp(
                         }
                         val fontSize = fontSizeValue.sp // Adjust the base size (16) based on the slider position
                         val lineHeight = fontSize * 1.25
-
-                        Text(
-                            modifier = Modifier.padding(innerPadding),
-                            text = stringResource(R.string.LoremIpsum),
-                            fontSize = fontSize,
-                            lineHeight = lineHeight
-                        )
+                        Box(
+                            modifier = Modifier
+                                .padding(innerPadding)
+                                .verticalScroll(rememberScrollState())
+                        ) {
+                            Text(
+                                modifier = Modifier.padding(innerPadding),
+                                text = stringResource(R.string.LoremIpsum),
+                                fontSize = fontSize,
+                                lineHeight = lineHeight
+                            )
+                        }
                     }
                 }
                 composable(route = PeekAReadScreen.Preferences.name) {
