@@ -95,6 +95,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 
 
 /**
@@ -163,21 +165,21 @@ fun handleMissingCameraPermission(context: Context, cameraPermissionState: Permi
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (alreadyAskedForPreferences == false) {
-            Text("Die Kamera ist wichtig für diese App. Bitte erlauben Sie Peek-A-Read den Zugriff darauf.")
+            Text("Die Kamera ist wichtig für diese App. Bitte erlauben Sie Peek-A-Read den Zugriff darauf.", fontSize = 30.sp, lineHeight = 45.sp, textAlign = TextAlign.Center)
             Spacer(modifier = Modifier.height(8.dp))
             Button(onClick = { cameraPermissionState.launchPermissionRequest(); alreadyAskedForPreferences = true
             }) {
-                Text("Zugriff erlauben")
+                Text("Zugriff erlauben", fontSize = 30.sp, lineHeight = 45.sp, textAlign = TextAlign.Center)
             }
         } else {
-            Text("Die Kamera ist nicht verfügbar.")
+            Text("Die Kamera ist nicht verfügbar.", fontSize = 30.sp, lineHeight = 45.sp, textAlign = TextAlign.Center)
             Spacer(modifier = Modifier.height(8.dp))
             Button(onClick = {
                 val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                 intent.data = Uri.parse("package:" + context.packageName)
                 context.startActivity(intent)
             }) {
-                Text("Zugriff erlauben")
+                Text("Zugriff erlauben", fontSize = 30.sp, lineHeight = 45.sp, textAlign = TextAlign.Center)
             }
         }
     }
@@ -314,7 +316,7 @@ fun PeekAReadApp(
                             verticalArrangement = Arrangement.SpaceEvenly,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            //Text(text = "Hier wird die App in der Kameraansicht gestartet.")
+                            //Text(text = "Hier wird die App in der Kameraansicht gestartet.", fontSize = 30.sp, lineHeight = 45.sp, textAlign = TextAlign.Center)
                             CameraPreview(context = context, lifecycleOwner = lifecycleOwner, navController = navController)
 
 //                        FloatingActionButton(onClick = { navController.navigate(PeekAReadScreen.Scan.name) }) {
@@ -393,7 +395,7 @@ fun PeekAReadApp(
                         verticalArrangement = Arrangement.SpaceEvenly,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ){
-                    Text(text = "Hier werden Elemente aus dem geschossenen Bild ausgewählt.")
+                    Text(text = "Hier werden Elemente aus dem geschossenen Bild ausgewählt.", fontSize = 30.sp, lineHeight = 45.sp, textAlign = TextAlign.Center)
                         Image(
                             modifier = Modifier
                                 .padding(16.dp, 8.dp),
@@ -515,7 +517,7 @@ fun PeekAReadApp(
                             .fillMaxSize()
                             .padding(16.dp)
                     ) {
-                        Text("Dunkelmodus aktiviert")
+                        Text("Dunkelmodus aktiviert", fontSize = 30.sp, lineHeight = 45.sp, textAlign = TextAlign.Center)
 
                         Switch(
                             checked = preferences_darkmode,
@@ -540,8 +542,9 @@ fun PeekAReadApp(
                                 modifier = Modifier.menuAnchor(),
                                 readOnly = true,
                                 value = preferences_fontType,
+                                textStyle = TextStyle(fontSize = 30.sp),
                                 onValueChange = {},
-                                label = { Text("Schriftart") },
+                                label = { Text("Schriftart", fontSize = 30.sp, lineHeight = 45.sp, textAlign = TextAlign.Center) },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                                 colors = ExposedDropdownMenuDefaults.textFieldColors(),
                             )
@@ -551,7 +554,7 @@ fun PeekAReadApp(
                             ) {
                                 options.forEach { selectionOption ->
                                     DropdownMenuItem(
-                                        text = { Text(selectionOption) },
+                                        text = { Text(selectionOption, fontSize = 30.sp, lineHeight = 45.sp, textAlign = TextAlign.Center) },
                                         onClick = {
                                             preferences_fontType = selectionOption
                                             expanded = false
