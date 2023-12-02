@@ -241,8 +241,12 @@ fun PeekAReadApp(
     }
 
     var preferences_fontType by remember { mutableStateOf("Arial") }
-    var preferences_darkmode by remember { mutableStateOf(false) }
     val options = listOf("Arial", "Helvetica", "Unit")
+
+    //Preferences for checking if app or system is already in darkmode
+    var preferences_darkmode by remember { mutableStateOf(false) }
+    var preferences_customDarkMode by remember { mutableStateOf(false) }
+
 
     //Mutable state variable to show dialog
     val openAlertDialog = remember { mutableStateOf(false) }
@@ -252,6 +256,7 @@ fun PeekAReadApp(
     fun loadPreferences() {
         preferences_fontType = sharedPreferences.getString("fontType", options[0]) ?: options[0]
         preferences_darkmode = sharedPreferences.getBoolean("darkMode", false)
+        preferences_customDarkMode = sharedPreferences.getBoolean("customDarkMode", false)
     }
 
     // Save font type and dark mode boolean to SharedPreferences
@@ -259,6 +264,7 @@ fun PeekAReadApp(
         with(sharedPreferences.edit()) {
             putString("fontType", preferences_fontType)
             putBoolean("darkMode", preferences_darkmode)
+            putBoolean("customDarkMode", preferences_customDarkMode)
             apply()
         }
     }
@@ -288,7 +294,7 @@ fun PeekAReadApp(
     }
 
     MaterialTheme(
-        colorScheme = if (preferences_darkmode || isSystemInDarkTheme()) DarkColors else LightColors,
+        colorScheme = if (preferences_darkmode || isSystemInDarkTheme() && preferences_customDarkMode) DarkColors else LightColors,
         typography = MaterialTheme.typography,
         shapes = MaterialTheme.shapes,
     ) {
