@@ -99,7 +99,12 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.Font
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 
 /**
@@ -115,6 +120,14 @@ enum class PeekAReadScreen(@StringRes val title: Int) {
 
 var alreadyAskedForPreferences: Boolean = false
 lateinit var imageUri: Uri
+
+val fontFamilyBitter = FontFamily(
+    Font(R.font.bitterregular, FontWeight.Normal, FontStyle.Normal),
+)
+
+val fontFamilyOpenSans = FontFamily(
+    Font(R.font.opensansregular, FontWeight.Normal, FontStyle.Normal)
+)
 
 /**
  * Composable that displays the topBar and displays back button if back navigation is possible.
@@ -234,14 +247,16 @@ fun PeekAReadApp(
         backStackEntry?.destination?.route ?: PeekAReadScreen.Start.name
     )
 
+    val preferencesViewModel: Preferences = viewModel()
+
     val context = LocalContext.current
 
     val sharedPreferences = remember {
         context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
     }
 
-    var preferences_fontType by remember { mutableStateOf("Arial") }
-    val options = listOf("Arial", "Helvetica", "Unit")
+    var preferences_fontType by remember { mutableStateOf("Bitter") }
+    val options = listOf("Bitter", "Open Sans")
 
     //Preferences for checking if app or system is already in darkmode
     var preferences_darkmode by remember { mutableStateOf(false) }
@@ -518,6 +533,8 @@ fun PeekAReadApp(
                                 modifier = Modifier.padding(innerPadding),
                                 text = stringResource(R.string.LoremIpsum),
                                 fontSize = fontSize,
+                                fontFamily = if ( preferences_fontType == "Bitter") fontFamilyBitter else fontFamilyOpenSans,
+                                fontWeight = FontWeight.Normal,
                                 lineHeight = lineHeight
                             )
                         }
@@ -556,7 +573,10 @@ fun PeekAReadApp(
                                 readOnly = true,
                                 value = preferences_fontType,
                                 textStyle = TextStyle(fontSize = 30.sp),
-                                onValueChange = {},
+                                onValueChange = {
+                                    preferences_fontType = it
+                                    savePreferences()
+                                },
                                 label = { Text("Schriftart", fontSize = 30.sp, lineHeight = 45.sp, textAlign = TextAlign.Center) },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                                 colors = ExposedDropdownMenuDefaults.textFieldColors(),
