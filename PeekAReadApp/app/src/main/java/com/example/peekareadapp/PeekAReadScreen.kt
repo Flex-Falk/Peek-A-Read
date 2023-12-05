@@ -53,6 +53,8 @@ import android.provider.MediaStore
 import android.provider.Settings
 import android.speech.tts.TextToSpeech
 import android.util.Log
+import android.widget.Toast
+import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -78,6 +80,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import java.text.SimpleDateFormat
 import java.util.Locale
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.gestures.detectTapGestures
 import coil.compose.rememberImagePainter
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
@@ -97,6 +100,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -120,6 +125,7 @@ enum class PeekAReadScreen(@StringRes val title: Int) {
 
 var alreadyAskedForPreferences: Boolean = false
 lateinit var imageUri: Uri
+lateinit var selectedBlockText: String
 
 val fontFamilyBitter = FontFamily(
     Font(R.font.bitterregular, FontWeight.Normal, FontStyle.Normal),
@@ -355,11 +361,13 @@ fun PeekAReadApp(
 
 
                     var recognizedTextBlocks by remember { mutableStateOf<List<Rect>>(emptyList()) }
+                    var recognizedText by remember { mutableStateOf<List<String>>(emptyList()) }
 
                     LaunchedEffect(imageUri) {
                         try {
                             val image = InputImage.fromFilePath(context, imageUri)
                             var blockFrameList = mutableListOf<Rect>()
+                            var blockTextList = mutableListOf<String>()
                             val result = recognizer.process(image)
                                 .addOnSuccessListener { visionText ->
                                     // Task completed successfully
@@ -380,9 +388,11 @@ fun PeekAReadApp(
                                         val blockCornerPoints = block.cornerPoints
                                         val blockFrame = block.boundingBox
                                         blockFrameList.add(blockFrame!!)
+                                        blockTextList.add(blockText)
 
                                     }
                                     recognizedTextBlocks = blockFrameList
+                                    recognizedText = blockTextList
                                     Log.i("List", recognizedTextBlocks.toString())
 
                                 }
@@ -397,12 +407,40 @@ fun PeekAReadApp(
                         }
 
                     }
-                    /*
-                    Box(modifier = Modifier.fillMaxHeight()){
 
-                        Image(modifier = Modifier.fillMaxHeight(), painter = rememberImagePainter(imageUri), contentDescription = null)
+                    Box(modifier = Modifier
+                        .fillMaxSize()
+                        .pointerInput(Unit){
+                            detectTapGestures (
+                                onTap = {offset ->
+                                    Log.i("tap", "tap")
+                                    Log.i("tap", offset.toString())
 
-                        Canvas(modifier = Modifier.fillMaxHeight()){
+
+                                    for ((index, block) in recognizedTextBlocks.withIndex()) {
+                                        val rect = Rect(
+                                            block.left,
+                                            block.top,
+                                            block.right,
+                                            block.bottom
+                                        )
+                                        if (rect.contains(offset.x.toInt(), offset.y.toInt())) {
+                                            // Tap is inside this rectangle
+                                            Log.i("Tap", "Inside rectangle: $rect")
+                                            Log.i("Recognized Text", recognizedText[index])
+                                            selectedBlockText = recognizedText[index]
+                                            //break
+                                            navController.navigate(PeekAReadScreen.Text.name)
+                                        }
+                                    }
+                                }
+
+                            )
+                        }){
+
+                        Image(modifier = Modifier.fillMaxSize(), painter = rememberImagePainter(imageUri), contentDescription = null, contentScale = ContentScale.FillBounds,)
+
+                        Canvas(modifier = Modifier.fillMaxSize()){
                             recognizedTextBlocks.forEach{block ->
                                 Log.i("block", block.toString())
                                 drawRect(color = Color.Red, topLeft = Offset(block.left.toFloat(), block.top.toFloat()),
@@ -410,24 +448,24 @@ fun PeekAReadApp(
                                 )
                             }
                         }
-                    }*/
-
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.SpaceEvenly,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ){
-                    Text(text = "Hier werden Elemente aus dem geschossenen Bild ausgewählt.", fontSize = 30.sp, lineHeight = 45.sp, textAlign = TextAlign.Center)
-                        Image(
-                            modifier = Modifier
-                                .padding(16.dp, 8.dp),
-                            painter = rememberImagePainter(imageUri),
-                            contentDescription = null
-                        )
-                        FloatingActionButton(onClick =  { navController.navigate(PeekAReadScreen.Text.name) }){
-                            Icon(Icons.Filled.Add, "Floating action button.")
-                        }
                     }
+
+//                    Column(
+//                        modifier = Modifier.fillMaxSize(),
+//                        verticalArrangement = Arrangement.SpaceEvenly,
+//                        horizontalAlignment = Alignment.CenterHorizontally
+//                    ){
+//                    Text(text = "Hier werden Elemente aus dem geschossenen Bild ausgewählt.", fontSize = 30.sp, lineHeight = 45.sp, textAlign = TextAlign.Center)
+//                        Image(
+//                            modifier = Modifier
+//                                .padding(16.dp, 8.dp),
+//                            painter = rememberImagePainter(imageUri),
+//                            contentDescription = null
+//                        )
+//                        FloatingActionButton(onClick =  { navController.navigate(PeekAReadScreen.Text.name) }){
+//                            Icon(Icons.Filled.Add, "Floating action button.")
+//                        }
+//                    }
                 }
                 composable(route = PeekAReadScreen.Text.name) {
                     var sliderPosition by remember { mutableStateOf(0f) } // Initialize with the default value (aka 0)
@@ -436,7 +474,8 @@ fun PeekAReadApp(
                     val context = LocalContext.current
                     var textToSpeech: TextToSpeech? by remember{ mutableStateOf(null) }
                     // text to read aloud
-                    var readText = stringResource(R.string.LoremIpsum)
+                    //var readText = stringResource(R.string.LoremIpsum)
+                    var readText = selectedBlockText
 
                     var isSpeaking by remember { mutableStateOf(false) }
 
@@ -531,7 +570,7 @@ fun PeekAReadApp(
                         ) {
                             Text(
                                 modifier = Modifier.padding(innerPadding),
-                                text = stringResource(R.string.LoremIpsum),
+                                text = readText,
                                 fontSize = fontSize,
                                 fontFamily = if ( preferences_fontType == "Bitter") fontFamilyBitter else fontFamilyOpenSans,
                                 fontWeight = FontWeight.Normal,
@@ -609,7 +648,8 @@ fun CameraPreview(context: Context, lifecycleOwner: LifecycleOwner, navControlle
     var preview by remember { mutableStateOf<Preview?>(null) }
     val executor = ContextCompat.getMainExecutor(context)
     val cameraProvider = cameraProviderFuture.get()
-    val imageCapture: ImageCapture = remember { ImageCapture.Builder().build() }
+    val imageCapture: ImageCapture = remember { ImageCapture.Builder().setTargetAspectRatio(
+        AspectRatio.RATIO_16_9).build() }
 
         Box(
         contentAlignment = Alignment.Center,
