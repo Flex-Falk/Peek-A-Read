@@ -412,24 +412,24 @@ fun PeekAReadApp(
                         .fillMaxSize()
                         .pointerInput(Unit){
                             detectTapGestures (
-                                onTap = {offset ->
-                                    Log.i("tap", "tap")
+                            onTap = {offset ->
+                                val scaledOffset = Offset(offset.x / 2.1f, offset.y / 2.1f)
+                                Log.i("tap", "tap")
                                     Log.i("tap", offset.toString())
 
 
-                                    for ((index, block) in recognizedTextBlocks.withIndex()) {
-                                        val rect = Rect(
-                                            block.left,
-                                            block.top,
-                                            block.right,
-                                            block.bottom
-                                        )
-                                        if (rect.contains(offset.x.toInt(), offset.y.toInt())) {
+                                for ((index, block) in recognizedTextBlocks.withIndex()) {
+                                    val scaledRect = Rect(
+                                        (block.left / 4.2).toInt(),
+                                        (block.top / 4.2).toInt(),
+                                        (block.right / 4.2).toInt(),
+                                        (block.bottom / 4.2).toInt()
+                                    )
+                                        if (scaledRect.contains(scaledOffset.x.toInt(), scaledOffset.y.toInt())) {
                                             // Tap is inside this rectangle
-                                            Log.i("Tap", "Inside rectangle: $rect")
+                                            Log.i("Tap", "Inside rectangle: $scaledRect")
                                             Log.i("Recognized Text", recognizedText[index])
                                             selectedBlockText = recognizedText[index]
-                                            //break
                                             navController.navigate(PeekAReadScreen.Text.name)
                                         }
                                     }
@@ -443,7 +443,7 @@ fun PeekAReadApp(
                         Canvas(modifier = Modifier.fillMaxSize()){
                             recognizedTextBlocks.forEach{block ->
                                 Log.i("block", block.toString())
-                                drawRect(color = Color.Red, topLeft = Offset(block.left.toFloat(), block.top.toFloat()) / 2.175F,
+                                drawRect(color = Color.Red, topLeft = Offset(block.left.toFloat(), block.top.toFloat()) / 2.1F,
                                     size = Size(block.width().toFloat(), block.height().toFloat()), style = Stroke(width = 6.dp.toPx())
                                 )
                             }
