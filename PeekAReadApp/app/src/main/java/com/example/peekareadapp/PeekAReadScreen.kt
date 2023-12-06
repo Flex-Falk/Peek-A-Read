@@ -95,6 +95,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.drawscope.DrawStyle
+import androidx.compose.ui.graphics.drawscope.Fill
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -443,8 +445,8 @@ fun PeekAReadApp(
                         Canvas(modifier = Modifier.fillMaxSize()){
                             recognizedTextBlocks.forEach{block ->
                                 Log.i("block", block.toString())
-                                drawRect(color = Color.Red, topLeft = Offset(block.left.toFloat(), block.top.toFloat()) / 2.1F,
-                                    size = Size(block.width().toFloat(), block.height().toFloat()), style = Stroke(width = 6.dp.toPx())
+                                drawRect(color = Color.White, alpha = 0.3f, topLeft = Offset(block.left.toFloat(), block.top.toFloat()) / 2.1f,
+                                    size = Size(block.width().toFloat() / 2.1f, block.height().toFloat() /2.1f), style = Fill
                                 )
                             }
                         }
