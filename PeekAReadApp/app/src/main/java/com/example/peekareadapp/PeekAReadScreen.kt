@@ -104,6 +104,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -112,6 +113,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.Font
 import androidx.lifecycle.viewmodel.compose.viewModel
+import android.content.ContentResolver
+import android.graphics.BitmapFactory
+
 
 
 /**
@@ -364,10 +368,48 @@ fun PeekAReadApp(
 
                     var recognizedTextBlocks by remember { mutableStateOf<List<Rect>>(emptyList()) }
                     var recognizedText by remember { mutableStateOf<List<String>>(emptyList()) }
+                    var containerSize by remember { mutableStateOf<Size?>(null) }
+
+
+                    val image = InputImage.fromFilePath(context, imageUri)
+
+                    val contentResolver: ContentResolver = context.contentResolver
+
+                    var imageWidth: Int = 0
+                    var imageHeight: Int = 0
+
+                    var widthRatio: Float = 0.0F
+                    var heightRatio: Float = 0.0F
+
+
+
+                    try {
+                        // Open an input stream from the content URI
+                        val inputStream = contentResolver.openInputStream(imageUri)
+
+                        // Decode the input stream to obtain its dimensions without loading the entire bitmap into memory
+                        val options = BitmapFactory.Options()
+                        options.inJustDecodeBounds = true
+                        BitmapFactory.decodeStream(inputStream, null, options)
+
+                        // Retrieve the width and height from the options
+                        imageHeight = options.outWidth
+                        imageWidth = options.outHeight
+
+                        Log.i("ImageSize", "Width: $imageWidth, Height: $imageHeight")
+
+                        // Close the input stream
+                        inputStream?.close()
+                    } catch (e: Exception) {
+                        // Handle exceptions (e.g., IOException)
+                        e.printStackTrace()
+                    }
 
                     LaunchedEffect(imageUri) {
                         try {
-                            val image = InputImage.fromFilePath(context, imageUri)
+
+
+
                             var blockFrameList = mutableListOf<Rect>()
                             var blockTextList = mutableListOf<String>()
                             val result = recognizer.process(image)
@@ -388,6 +430,7 @@ fun PeekAReadApp(
                                     for (block in visionText.textBlocks) {
                                         val blockText = block.text
                                         val blockCornerPoints = block.cornerPoints
+                                        //Log.i("blockCornerPoints", blockCornerPoints.toString())
                                         val blockFrame = block.boundingBox
                                         blockFrameList.add(blockFrame!!)
                                         blockTextList.add(blockText)
@@ -412,22 +455,32 @@ fun PeekAReadApp(
 
                     Box(modifier = Modifier
                         .fillMaxSize()
+                        .onGloballyPositioned { coordinates ->
+                            // Update container size when the layout is positioned
+                            containerSize = Size(
+                                width = coordinates.size.width.toFloat(),
+                                height = coordinates.size.height.toFloat()
+                            )
+                            Log.i("containerSize", containerSize.toString())
+                            widthRatio = containerSize!!.width / imageWidth
+                            heightRatio = containerSize!!.height / imageHeight
+                            Log.i("ratio", "WidthRatio: $widthRatio, HeightRatio: $heightRatio")
+                        }
                         .pointerInput(Unit){
                             detectTapGestures (
                             onTap = {offset ->
-                                val scaledOffset = Offset(offset.x / 2.1f, offset.y / 2.1f)
                                 Log.i("tap", "tap")
                                     Log.i("tap", offset.toString())
 
 
                                 for ((index, block) in recognizedTextBlocks.withIndex()) {
                                     val scaledRect = Rect(
-                                        (block.left / 4.2).toInt(),
-                                        (block.top / 4.2).toInt(),
-                                        (block.right / 4.2).toInt(),
-                                        (block.bottom / 4.2).toInt()
+                                        (block.left * widthRatio).toInt(),
+                                        (block.top * heightRatio).toInt(),
+                                        (block.right * widthRatio).toInt(),
+                                        (block.bottom * heightRatio).toInt()
                                     )
-                                        if (scaledRect.contains(scaledOffset.x.toInt(), scaledOffset.y.toInt())) {
+                                        if (scaledRect.contains(offset.x.toInt(), offset.y.toInt())) {
                                             // Tap is inside this rectangle
                                             Log.i("Tap", "Inside rectangle: $scaledRect")
                                             Log.i("Recognized Text", recognizedText[index])
@@ -444,9 +497,10 @@ fun PeekAReadApp(
 
                         Canvas(modifier = Modifier.fillMaxSize()){
                             recognizedTextBlocks.forEach{block ->
+
                                 Log.i("block", block.toString())
-                                drawRect(color = Color.White, alpha = 0.3f, topLeft = Offset(block.left.toFloat(), block.top.toFloat()) / 2.1f,
-                                    size = Size(block.width().toFloat() / 2.1f, block.height().toFloat() /2.1f), style = Fill
+                                drawRect(color = Color.White, alpha = 0.3f, topLeft = Offset(block.left.toFloat() * widthRatio, block.top.toFloat() * heightRatio) ,
+                                    size = Size(block.width().toFloat() * widthRatio, block.height().toFloat()* heightRatio), style = Fill
                                 )
                             }
                         }
