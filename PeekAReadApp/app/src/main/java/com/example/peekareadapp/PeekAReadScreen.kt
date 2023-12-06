@@ -443,7 +443,7 @@ fun PeekAReadApp(
                         Canvas(modifier = Modifier.fillMaxSize()){
                             recognizedTextBlocks.forEach{block ->
                                 Log.i("block", block.toString())
-                                drawRect(color = Color.Red, topLeft = Offset(block.left.toFloat(), block.top.toFloat()),
+                                drawRect(color = Color.Red, topLeft = Offset(block.left.toFloat(), block.top.toFloat()) / 2.175F,
                                     size = Size(block.width().toFloat(), block.height().toFloat()), style = Stroke(width = 6.dp.toPx())
                                 )
                             }
