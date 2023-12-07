@@ -274,6 +274,8 @@ fun PeekAReadApp(
     var preferences_darkmode by remember { mutableStateOf(false) }
     var preferences_customDarkMode by remember { mutableStateOf(false) }
 
+    var sliderPosition by remember { mutableStateOf(0f) } // Initialize with the default value (aka 0)
+
 
     //Mutable state variable to show dialog
     val openAlertDialog = remember { mutableStateOf(false) }
@@ -286,6 +288,13 @@ fun PeekAReadApp(
         preferences_customDarkMode = sharedPreferences.getBoolean("customDarkMode", false)
     }
 
+
+    // Load font size from SharedPreferences
+
+    fun loadSliderPosition(){
+        sliderPosition = sharedPreferences.getFloat("sliderPosition", 0f)
+    }
+
     // Save font type and dark mode boolean to SharedPreferences
     fun savePreferences() {
         with(sharedPreferences.edit()) {
@@ -293,6 +302,13 @@ fun PeekAReadApp(
             putBoolean("darkMode", preferences_darkmode)
             putBoolean("customDarkMode", preferences_customDarkMode)
             apply()
+        }
+    }
+
+    // Save font type and dark mode boolean to SharedPreferences
+    fun saveSliderPosition() {
+        with(sharedPreferences.edit()) {
+            putFloat("fontSize", sliderPosition)
         }
     }
 
@@ -315,8 +331,10 @@ fun PeekAReadApp(
 
     DisposableEffect(Unit) {
         loadPreferences()
+        loadSliderPosition()
         onDispose {
             savePreferences()
+            saveSliderPosition()
         }
     }
 
@@ -407,8 +425,6 @@ fun PeekAReadApp(
 
                     LaunchedEffect(imageUri) {
                         try {
-
-
 
                             var blockFrameList = mutableListOf<Rect>()
                             var blockTextList = mutableListOf<String>()
@@ -505,27 +521,8 @@ fun PeekAReadApp(
                             }
                         }
                     }
-
-//                    Column(
-//                        modifier = Modifier.fillMaxSize(),
-//                        verticalArrangement = Arrangement.SpaceEvenly,
-//                        horizontalAlignment = Alignment.CenterHorizontally
-//                    ){
-//                    Text(text = "Hier werden Elemente aus dem geschossenen Bild ausgewählt.", fontSize = 30.sp, lineHeight = 45.sp, textAlign = TextAlign.Center)
-//                        Image(
-//                            modifier = Modifier
-//                                .padding(16.dp, 8.dp),
-//                            painter = rememberImagePainter(imageUri),
-//                            contentDescription = null
-//                        )
-//                        FloatingActionButton(onClick =  { navController.navigate(PeekAReadScreen.Text.name) }){
-//                            Icon(Icons.Filled.Add, "Floating action button.")
-//                        }
-//                    }
                 }
                 composable(route = PeekAReadScreen.Text.name) {
-                    var sliderPosition by remember { mutableStateOf(0f) } // Initialize with the default value (aka 0)
-
                     //text-to-speech context
                     val context = LocalContext.current
                     var textToSpeech: TextToSpeech? by remember{ mutableStateOf(null) }
@@ -556,7 +553,7 @@ fun PeekAReadApp(
                                     }
                                     Slider(
                                         value = sliderPosition,
-                                        onValueChange = { newValue -> sliderPosition = newValue },
+                                        onValueChange = { newValue -> sliderPosition = newValue},
                                         modifier = Modifier
                                             .padding(8.dp)
                                             .height(40.dp)
