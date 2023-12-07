@@ -73,31 +73,3 @@ val LightColors = lightColorScheme(
     outlineVariant = md_theme_dark_outlineVariant,
     scrim = md_theme_dark_scrim,
 )
-
-@Composable
-fun PeekAReadTheme(
-  useDarkTheme: Boolean = isSystemInDarkTheme(),
-  content: @Composable() () -> Unit
-) {
-  val colors = if (!useDarkTheme) {
-    LightColors
-  } else {
-    DarkColors
-  }
-
-    val systemUiController = rememberSystemUiController()
-    if(useDarkTheme){
-        systemUiController.setSystemBarsColor(
-            color = md_theme_dark_tertiary
-        )
-    }else{
-        systemUiController.setSystemBarsColor(
-            color = md_theme_light_tertiary
-        )
-    }
-
-  MaterialTheme(
-    colorScheme = colors,
-    content = content
-  )
-}

@@ -115,7 +115,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.lifecycle.viewmodel.compose.viewModel
 import android.content.ContentResolver
 import android.graphics.BitmapFactory
-
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 
 /**
@@ -247,6 +247,15 @@ fun AlertDialogExample(
     )
 }
 
+@Composable
+fun PeekAReadTheme(
+    content: @Composable() () -> Unit
+) {
+    MaterialTheme(
+        content = content
+    )
+}
+
 @OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun PeekAReadApp(
@@ -311,6 +320,18 @@ fun PeekAReadApp(
                 icon = Icons.Default.Info
             )
         }
+    }
+
+    //Set color for system bar
+    val systemUiController = rememberSystemUiController()
+    if (preferences_darkmode) {
+        systemUiController.setSystemBarsColor(
+            color = md_theme_dark_tertiary
+        )
+    } else {
+        systemUiController.setSystemBarsColor(
+            color = md_theme_light_tertiary
+        )
     }
 
     DisposableEffect(Unit) {
