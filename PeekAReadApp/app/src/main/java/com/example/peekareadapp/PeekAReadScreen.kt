@@ -408,6 +408,8 @@ fun PeekAReadApp(
                     var recognizedTextBlocks by remember { mutableStateOf<List<Rect>>(emptyList()) }
                     var recognizedText by remember { mutableStateOf<List<String>>(emptyList()) }
                     var containerSize by remember { mutableStateOf<Size?>(null) }
+                    val scanScreenViewModel: ScanScreenViewModel = viewModel()
+                    val selectedBlocks by scanScreenViewModel.selectedBlocks.collectAsState()
 
 
                     val image = InputImage.fromFilePath(context, imageUri)
@@ -517,13 +519,14 @@ fun PeekAReadApp(
                                         (block.right * widthRatio).toInt(),
                                         (block.bottom * heightRatio).toInt()
                                     )
-                                        if (scaledRect.contains(offset.x.toInt(), offset.y.toInt())) {
-                                            // Tap is inside this rectangle
-                                            Log.i("Tap", "Inside rectangle: $scaledRect")
-                                            Log.i("Recognized Text", recognizedText[index])
-                                            selectedBlockText = recognizedText[index]
-                                            navController.navigate(PeekAReadScreen.Text.name)
-                                        }
+                                    if (scaledRect.contains(offset.x.toInt(), offset.y.toInt())) {
+                                        // Tap is inside this rectangle
+                                        Log.i("Tap", "Inside rectangle: $scaledRect")
+                                        Log.i("Recognized Text", recognizedText[index])
+                                        selectedBlockText = recognizedText[index]
+                                        scanScreenViewModel.selectBlock(block) // Add the selected block to the list
+                                        navController.navigate(PeekAReadScreen.Text.name)
+                                    }
                                     }
                                 }
 
@@ -534,10 +537,13 @@ fun PeekAReadApp(
 
                         Canvas(modifier = Modifier.fillMaxSize()){
                             recognizedTextBlocks.forEach{block ->
-
                                 Log.i("block", block.toString())
-                                drawRect(color = Color.White, alpha = 0.3f, topLeft = Offset(block.left.toFloat() * widthRatio, block.top.toFloat() * heightRatio) ,
-                                    size = Size(block.width().toFloat() * widthRatio, block.height().toFloat()* heightRatio), style = Fill
+                                val color = if (block in selectedBlocks) Color.Yellow.copy(alpha = 0.3f) else Color.White.copy(alpha = 0.3f)
+                                drawRect(
+                                    color = color,
+                                    topLeft = Offset(block.left.toFloat() * widthRatio, block.top.toFloat() * heightRatio),
+                                    size = Size(block.width().toFloat() * widthRatio, block.height().toFloat()* heightRatio),
+                                    style = Fill
                                 )
                             }
                         }

@@ -22,14 +22,14 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d819235e-57d1-489e-822f-3da6fb60f7c2" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PeekAReadApp/app/src/main/java/com/example/peekareadapp/Theme.kt" beforeDir="false" afterPath="$PROJECT_DIR$/PeekAReadApp/app/src/main/java/com/example/peekareadapp/Theme.kt" afterDir="false" />
-    </list>
+    <list default="true" id="d819235e-57d1-489e-822f-3da6fb60f7c2" name="Default Changelist" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -39,12 +39,14 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">
-    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
-    <property name="project.structure.last.edited" value="Project" />
-    <property name="project.structure.proportion" value="0.0" />
-    <property name="project.structure.side.proportion" value="0.0" />
-  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "cf.first.check.clang-format": "false",
+    "cidr.known.project.marker": "true",
+    "last_opened_file_path": "C:/Users/maris/Documents/GitHub/Peek-A-Read/PeekAReadApp"
+  }
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\lena\OneDrive\Dokumente\Uni\2023-24 WiSe\Labor Mobile Interaction Design\Peek-a-Read\PeekAReadApp\app\src\main\java\com\example\peekareadapp" />
@@ -71,20 +73,5 @@
         </entry>
       </map>
     </option>
-    <option name="oldMeFiltersMigrated" value="true" />
-  </component>
-  <component name="WindowStateProjectService">
-    <state x="96" y="0" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1700585121203">
-      <screen x="0" y="0" width="1280" height="672" />
-    </state>
-    <state x="96" y="0" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1280.672@0.0.1280.672" timestamp="1700585121203" />
-    <state x="93" y="93" width="1095" height="487" key="AVDManager" timestamp="1700585170369">
-      <screen x="0" y="0" width="1280" height="672" />
-    </state>
-    <state x="93" y="93" width="1095" height="487" key="AVDManager/0.0.1280.672@0.0.1280.672" timestamp="1700585170369" />
-    <state x="121" y="0" key="SettingsEditor" timestamp="1700584934539">
-      <screen x="0" y="0" width="1280" height="672" />
-    </state>
-    <state x="121" y="0" key="SettingsEditor/0.0.1280.672@0.0.1280.672" timestamp="1700584934539" />
   </component>
 </project>
