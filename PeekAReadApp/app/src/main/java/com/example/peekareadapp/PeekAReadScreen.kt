@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.BottomAppBarDefaults
@@ -43,17 +42,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import android.Manifest
-import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.graphics.Rect
 import android.net.Uri
-import android.os.Build
-import android.provider.MediaStore
 import android.provider.Settings
 import android.speech.tts.TextToSpeech
 import android.util.Log
-import android.widget.Toast
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -73,11 +68,8 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.border
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.AndroidView
-import java.text.SimpleDateFormat
 import java.util.Locale
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -95,12 +87,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Fill
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -114,7 +104,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.Font
 import androidx.lifecycle.viewmodel.compose.viewModel
 import android.content.ContentResolver
-import android.graphics.BitmapFactory
+import android.graphics.Bitmap
+import android.graphics.Matrix
+import androidx.camera.core.ExperimentalGetImage
+import androidx.camera.core.ImageProxy
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 
@@ -130,7 +123,9 @@ enum class PeekAReadScreen(@StringRes val title: Int) {
 }
 
 var alreadyAskedForPreferences: Boolean = false
-lateinit var imageUri: Uri
+//lateinit var imageUri: Uri
+var imageProxy: ImageProxy? = null
+
 lateinit var selectedBlockText: String
 
 val fontFamilyBitter = FontFamily(
@@ -256,7 +251,7 @@ fun PeekAReadTheme(
     )
 }
 
-@OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
+@androidx.annotation.OptIn(ExperimentalGetImage::class) @OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun PeekAReadApp(
     navController: NavHostController = rememberNavController(),
@@ -412,41 +407,21 @@ fun PeekAReadApp(
                     val selectedBlocks by scanScreenViewModel.selectedBlocks.collectAsState()
 
 
-                    val image = InputImage.fromFilePath(context, imageUri)
+                    val mediaImage = imageProxy!!.image
+                    val image = InputImage.fromMediaImage(
+                        mediaImage!!,
+                        imageProxy!!.imageInfo.rotationDegrees
+                    )
 
-                    val contentResolver: ContentResolver = context.contentResolver
 
-                    var imageWidth: Int = 0
-                    var imageHeight: Int = 0
+                    var imageWidth = mediaImage.height
+                    var imageHeight = mediaImage.width
 
                     var widthRatio: Float = 0.0F
                     var heightRatio: Float = 0.0F
 
 
-
-                    try {
-                        // Open an input stream from the content URI
-                        val inputStream = contentResolver.openInputStream(imageUri)
-
-                        // Decode the input stream to obtain its dimensions without loading the entire bitmap into memory
-                        val options = BitmapFactory.Options()
-                        options.inJustDecodeBounds = true
-                        BitmapFactory.decodeStream(inputStream, null, options)
-
-                        // Retrieve the width and height from the options
-                        imageHeight = options.outWidth
-                        imageWidth = options.outHeight
-
-                        Log.i("ImageSize", "Width: $imageWidth, Height: $imageHeight")
-
-                        // Close the input stream
-                        inputStream?.close()
-                    } catch (e: Exception) {
-                        // Handle exceptions (e.g., IOException)
-                        e.printStackTrace()
-                    }
-
-                    LaunchedEffect(imageUri) {
+                    LaunchedEffect(image) {
                         try {
 
                             var blockFrameList = mutableListOf<Rect>()
@@ -500,17 +475,16 @@ fun PeekAReadApp(
                                 width = coordinates.size.width.toFloat(),
                                 height = coordinates.size.height.toFloat()
                             )
-                            Log.i("containerSize", containerSize.toString())
+                            //Log.i("containerSize", containerSize.toString())
                             widthRatio = containerSize!!.width / imageWidth
                             heightRatio = containerSize!!.height / imageHeight
-                            Log.i("ratio", "WidthRatio: $widthRatio, HeightRatio: $heightRatio")
+                            //Log.i("ratio", "WidthRatio: $widthRatio, HeightRatio: $heightRatio")
                         }
                         .pointerInput(Unit){
                             detectTapGestures (
                             onTap = {offset ->
-                                Log.i("tap", "tap")
-                                    Log.i("tap", offset.toString())
 
+                                    //Log.i("tap", offset.toString())
 
                                 for ((index, block) in recognizedTextBlocks.withIndex()) {
                                     val scaledRect = Rect(
@@ -521,8 +495,8 @@ fun PeekAReadApp(
                                     )
                                     if (scaledRect.contains(offset.x.toInt(), offset.y.toInt())) {
                                         // Tap is inside this rectangle
-                                        Log.i("Tap", "Inside rectangle: $scaledRect")
-                                        Log.i("Recognized Text", recognizedText[index])
+                                        //Log.i("Tap", "Inside rectangle: $scaledRect")
+                                        //Log.i("Recognized Text", recognizedText[index])
                                         selectedBlockText = recognizedText[index]
                                         scanScreenViewModel.selectBlock(block) // Add the selected block to the list
                                         navController.navigate(PeekAReadScreen.Text.name)
@@ -533,11 +507,12 @@ fun PeekAReadApp(
                             )
                         }){
 
-                        Image(modifier = Modifier.fillMaxSize(), painter = rememberImagePainter(imageUri), contentDescription = null, contentScale = ContentScale.FillBounds,)
+                        Image(modifier = Modifier.fillMaxSize(), painter = rememberImagePainter(
+                            imageProxy!!.toBitmap().rotate(90F)), contentDescription = null, contentScale = ContentScale.FillBounds,)
 
                         Canvas(modifier = Modifier.fillMaxSize()){
                             recognizedTextBlocks.forEach{block ->
-                                Log.i("block", block.toString())
+                                //Log.i("block", block.toString())
                                 val color = if (block in selectedBlocks) Color.Yellow.copy(alpha = 0.3f) else Color.White.copy(alpha = 0.3f)
                                 drawRect(
                                     color = color,
@@ -772,42 +747,29 @@ fun CameraPreview(context: Context, lifecycleOwner: LifecycleOwner, navControlle
     }
 }
 
+
+
 fun takePhoto(imageCapture: ImageCapture, context: Context, navController: NavHostController) {
-
-    val name = SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS", Locale.US)
-        .format(System.currentTimeMillis())
-    val contentValues = ContentValues().apply {
-        put(MediaStore.MediaColumns.DISPLAY_NAME, name)
-        put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
-        if(Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
-            put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/CameraX-Image")
-        }
-    }
-
-    // Create output options object which contains file + metadata
-    val outputOptions = ImageCapture.OutputFileOptions
-        .Builder(context.contentResolver,
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            contentValues)
-        .build()
-
     imageCapture.takePicture(
-        outputOptions,
         ContextCompat.getMainExecutor(context),
-        object : ImageCapture.OnImageSavedCallback {
-            override fun onError(exc: ImageCaptureException) {
-                val msg = "Capture failed: ${exc.message}"
-                Log.i("Capture",msg)
-            }
+        object : ImageCapture.OnImageCapturedCallback() {
+            override fun onCaptureSuccess(image: ImageProxy) {
 
-            override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                val msg = "Captured: ${output.savedUri}"
-                imageUri = output.savedUri!!
-                Log.i("Capture",msg)
+                imageProxy = image
                 navController.navigate(PeekAReadScreen.Scan.name)
 
+            }
+
+            override fun onError(exception: ImageCaptureException) {
+                // Handle error
+                val msg = "Capture failed: ${exception.message}"
+                Log.i("Capture", msg)
             }
         }
     )
 }
 
+fun Bitmap.rotate(degrees: Float): Bitmap {
+    val matrix = Matrix().apply { postRotate(degrees) }
+    return Bitmap.createBitmap(this, 0, 0, width, height, matrix, true)
+}
