@@ -284,7 +284,7 @@ fun PeekAReadApp(
     }
 
     var preferences_fontType by remember { mutableStateOf("Bitter") }
-    val options = listOf("Bitter", "Open Sans", "Kalnia", "Preahvihear", "Josefin Sans")
+    val options = listOf("Bitter", "Josefin Sans", "Kalnia", "Open Sans", "Preahvihear")
 
     //Preferences for checking if app or system is already in darkmode
     var preferences_darkmode by remember { mutableStateOf(false) }
