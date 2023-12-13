@@ -133,7 +133,19 @@ val fontFamilyBitter = FontFamily(
 )
 
 val fontFamilyOpenSans = FontFamily(
-    Font(R.font.opensansregular, FontWeight.Normal, FontStyle.Normal)
+    Font(R.font.opensansregular, FontWeight.Normal, FontStyle.Normal),
+)
+
+val fontFamilyKalnia = FontFamily(
+    Font(R.font.kalnia, FontWeight.Normal, FontStyle.Normal),
+)
+
+val fontFamilyPreahvihear = FontFamily(
+    Font(R.font.preahvihear, FontWeight.Normal, FontStyle.Normal),
+)
+
+val fontFamilyJosefinSans = FontFamily(
+    Font(R.font.josefinsans, FontWeight.Normal, FontStyle.Normal),
 )
 
 /**
@@ -272,7 +284,7 @@ fun PeekAReadApp(
     }
 
     var preferences_fontType by remember { mutableStateOf("Bitter") }
-    val options = listOf("Bitter", "Open Sans")
+    val options = listOf("Bitter", "Open Sans", "Kalnia", "Preahvihear", "Josefin Sans")
 
     //Preferences for checking if app or system is already in darkmode
     var preferences_darkmode by remember { mutableStateOf(false) }
@@ -376,6 +388,8 @@ fun PeekAReadApp(
                 modifier = Modifier.padding(innerPadding)
             ) {
                 composable(route = PeekAReadScreen.Camera.name) {
+                    //snavController.navigate(PeekAReadScreen.Text.name)
+
                     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
                     val context = LocalContext.current
                     val lifecycleOwner = LocalLifecycleOwner.current
@@ -627,7 +641,16 @@ fun PeekAReadApp(
                                 modifier = Modifier.padding(innerPadding),
                                 text = readText,
                                 fontSize = fontSize,
-                                fontFamily = if ( preferences_fontType == "Bitter") fontFamilyBitter else fontFamilyOpenSans,
+                                fontFamily = if ( preferences_fontType == "Bitter")
+                                                    fontFamilyBitter
+                                                else if (preferences_fontType == "Open Sans")
+                                                    fontFamilyOpenSans
+                                                else if (preferences_fontType == "Kalnia")
+                                                    fontFamilyKalnia
+                                                else if (preferences_fontType == "Preahvihear")
+                                                    fontFamilyPreahvihear
+                                                else
+                                                    fontFamilyJosefinSans,
                                 fontWeight = FontWeight.Normal,
                                 lineHeight = lineHeight
                             )

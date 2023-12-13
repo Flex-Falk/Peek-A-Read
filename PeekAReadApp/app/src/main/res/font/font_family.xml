@@ -9,4 +9,19 @@
         android:font="@font/opensansregular"
         android:fontStyle="normal"
         android:fontWeight="400" />
+
+    <font
+        android:font="@font/kalnia"
+        android:fontStyle="normal"
+        android:fontWeight="400" />
+
+    <font
+        android:font="@font/preahvihear"
+        android:fontStyle="normal"
+        android:fontWeight="400" />
+
+    <font
+        android:font="@font/josefinsans"
+        android:fontStyle="normal"
+        android:fontWeight="400" />
 </font-family>
