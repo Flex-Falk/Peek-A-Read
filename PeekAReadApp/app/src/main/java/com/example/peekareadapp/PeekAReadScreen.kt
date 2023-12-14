@@ -564,7 +564,13 @@ fun PeekAReadApp(
                         bottomBar = {
                             BottomAppBar(
                                 actions = {
-                                    IconButton(onClick = {sliderPosition -= 0.1f}) {
+                                    IconButton(onClick = {
+                                        if(sliderPosition - 0.1f >= 0){
+                                            sliderPosition -= 0.1f
+                                        } else{
+                                            sliderPosition = 0f
+                                        }
+                                    }) {
                                         Icon(painterResource(id = R.drawable.baseline_text_decrease_24), "Localized description")
                                     }
                                     Slider(
@@ -626,11 +632,11 @@ fun PeekAReadApp(
                         },
                     ) { innerPadding ->
 
-                        var fontSizeValue = (16 * sliderPosition + 20)
-                        if (fontSizeValue <= 20){
-                            fontSizeValue = 20F
+                        var fontSizeValue = (30 * sliderPosition + 25)
+                        if (fontSizeValue <= 25){
+                            fontSizeValue = 25F
                         }
-                        val fontSize = fontSizeValue.sp // Adjust the base size (16) based on the slider position
+                        val fontSize = fontSizeValue.sp // Adjust the base size based on the slider position
                         val lineHeight = fontSize * 1.25
                         Box(
                             modifier = Modifier
