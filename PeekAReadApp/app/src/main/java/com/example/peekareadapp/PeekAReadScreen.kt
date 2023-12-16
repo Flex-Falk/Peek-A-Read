@@ -183,7 +183,7 @@ fun PeekAReadAppBar(
                 IconButton(onClick = navigateToPreferences) {
                     Icon(
                         imageVector = Icons.Default.Settings,
-                        contentDescription = stringResource(R.string.action_settings)
+                        contentDescription = stringResource(R.string.PreferencesScreen)
                     )
                 }
             }
@@ -200,21 +200,21 @@ fun handleMissingCameraPermission(context: Context, cameraPermissionState: Permi
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (alreadyAskedForPreferences == false) {
-            Text("Die Kamera ist wichtig für diese App. Bitte erlauben Sie Peek-A-Read den Zugriff darauf.", fontSize = 30.sp, lineHeight = 45.sp, textAlign = TextAlign.Center)
+            Text(stringResource(R.string.CameraPermission), fontSize = 30.sp, lineHeight = 45.sp, textAlign = TextAlign.Center)
             Spacer(modifier = Modifier.height(8.dp))
             Button(onClick = { cameraPermissionState.launchPermissionRequest(); alreadyAskedForPreferences = true
             }) {
-                Text("Zugriff erlauben", fontSize = 30.sp, lineHeight = 45.sp, textAlign = TextAlign.Center)
+                Text(stringResource(R.string.GrantAccess), fontSize = 30.sp, lineHeight = 45.sp, textAlign = TextAlign.Center)
             }
         } else {
-            Text("Die Kamera ist nicht verfügbar.", fontSize = 30.sp, lineHeight = 45.sp, textAlign = TextAlign.Center)
+            Text(stringResource(R.string.GrantAccess), fontSize = 30.sp, lineHeight = 45.sp, textAlign = TextAlign.Center)
             Spacer(modifier = Modifier.height(8.dp))
             Button(onClick = {
                 val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                 intent.data = Uri.parse("package:" + context.packageName)
                 context.startActivity(intent)
             }) {
-                Text("Zugriff erlauben", fontSize = 30.sp, lineHeight = 45.sp, textAlign = TextAlign.Center)
+                Text(stringResource(R.string.GrantAccess), fontSize = 30.sp, lineHeight = 45.sp, textAlign = TextAlign.Center)
             }
         }
     }
@@ -248,7 +248,7 @@ fun AlertDialogExample(
                     onConfirmation()
                 }
             ) {
-                Text("Verstanden")
+                Text(stringResource(R.string.Understood))
             }
         }
     )
@@ -338,8 +338,8 @@ fun PeekAReadApp(
                     println("Confirmation registered") // Add logic here to handle confirmation.
                     navController.navigateUp()
                 },
-                dialogTitle = "Kein Text erkannt",
-                dialogText = "Tipps:\n\u25CF Beleuchtung verbessern\n\u25CF Handy stabil halten\n\u25CF Falten glätten",
+                dialogTitle = stringResource(R.string.NoTextRecognised),
+                dialogText = stringResource(R.string.ErrorRecommendation),
                 icon = Icons.Default.Info
             )
         }
@@ -400,7 +400,6 @@ fun PeekAReadApp(
                             verticalArrangement = Arrangement.SpaceEvenly,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            //Text(text = "Hier wird die App in der Kameraansicht gestartet.", fontSize = 30.sp, lineHeight = 45.sp, textAlign = TextAlign.Center)
                             CameraPreview(context = context, lifecycleOwner = lifecycleOwner, navController = navController)
 
 
@@ -426,7 +425,6 @@ fun PeekAReadApp(
                         mediaImage!!,
                         imageProxy!!.imageInfo.rotationDegrees
                     )
-
 
                     var imageWidth = mediaImage.height
                     var imageHeight = mediaImage.width
@@ -670,7 +668,7 @@ fun PeekAReadApp(
                             .fillMaxSize()
                             .padding(16.dp)
                     ) {
-                        Text("Dunkelmodus aktiviert", fontSize = 30.sp, lineHeight = 45.sp, textAlign = TextAlign.Center)
+                        Text(stringResource(R.string.DarkModeActivated), fontSize = 30.sp, lineHeight = 45.sp, textAlign = TextAlign.Center)
 
                         Switch(
                             checked = preferences_darkmode,
@@ -700,7 +698,7 @@ fun PeekAReadApp(
                                     preferences_fontType = it
                                     savePreferences()
                                 },
-                                label = { Text("Schriftart", fontSize = 30.sp, lineHeight = 45.sp, textAlign = TextAlign.Center) },
+                                label = { Text(stringResource(R.string.FontType), fontSize = 30.sp, lineHeight = 45.sp, textAlign = TextAlign.Center) },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                                 colors = ExposedDropdownMenuDefaults.textFieldColors(),
                             )

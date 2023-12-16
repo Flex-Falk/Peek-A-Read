@@ -1,23 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Peek-A-Read</string>
-
-    <!-- Strings used for fragments for navigation -->
-
     <string name="CameraScreen">Take a Photo</string>
     <string name="ScanScreen">Select Text Fields</string>
     <string name="TextScreen">Visible Text</string>
     <string name="PreferencesScreen">Edit Preferences</string>
     <string name="BackButtton">Back</string>
-
     <string name="CameraPermission">The camera is important for this app. Please allow Peek-A-Read to access it.</string>
     <string name="CameraNotAvailable">The Camera is not available.</string>
     <string name="GrantAccess">Grant Access</string>
     <string name="Understood">Understood</string>
-
     <string name="ErrorRecommendation">Tips: \\u25CF Improve lighting \\u25CF Keep your phone stable \\u25CF Smooth out wrinkles</string>
-    <string name="NoTextRecognised">No Text Recognized</string>
-
+    <string name="NoTextRecognised">No text recognized</string>
     <string name="DarkModeActivated">Dark mode activated</string>
     <string name="FontType">Font Type</string>
-
 </resources>
