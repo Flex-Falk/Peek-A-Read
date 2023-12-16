@@ -1,8 +1,6 @@
 <resources>
     <string name="app_name">Peek-A-Read</string>
 
-    <!-- Strings used for fragments for navigation -->
-
     <string name="CameraScreen">Take a Photo</string>
     <string name="ScanScreen">Select Text Fields</string>
     <string name="TextScreen">Visible Text</string>

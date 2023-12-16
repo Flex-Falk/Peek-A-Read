@@ -541,7 +541,6 @@ fun PeekAReadApp(
                     val context = LocalContext.current
                     var textToSpeech: TextToSpeech? by remember{ mutableStateOf(null) }
                     // text to read aloud
-                    //var readText = stringResource(R.string.LoremIpsum)
                     var readText = selectedBlockText
 
                     var isSpeaking by remember { mutableStateOf(false) }
@@ -549,7 +548,7 @@ fun PeekAReadApp(
                     DisposableEffect(Unit){
                         textToSpeech = TextToSpeech(context){ status ->
                             if(status == TextToSpeech.SUCCESS) {
-                                textToSpeech?.language = Locale.GERMAN
+                                textToSpeech?.language = Locale.getDefault()
                             }
                         }
 
