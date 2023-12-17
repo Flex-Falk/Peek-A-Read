@@ -106,6 +106,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import android.content.ContentResolver
 import android.graphics.Bitmap
 import android.graphics.Matrix
+import android.text.Html
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageProxy
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -231,7 +232,7 @@ fun AlertDialogExample(
 ) {
     AlertDialog(
         icon = {
-            Icon(icon, contentDescription = "Example Icon")
+            Icon(icon, contentDescription = stringResource(R.string.InformationIcon))
         },
         title = {
             Text(text = dialogTitle)
@@ -292,6 +293,7 @@ fun PeekAReadApp(
 
     var sliderPosition by remember { mutableStateOf(0f) } // Initialize with the default value (aka 0)
 
+    var flashMode by remember { mutableStateOf(false) }
 
     //Mutable state variable to show dialog
     val openAlertDialog = remember { mutableStateOf(false) }
@@ -306,9 +308,13 @@ fun PeekAReadApp(
 
 
     // Load font size from SharedPreferences
-
     fun loadSliderPosition(){
         sliderPosition = sharedPreferences.getFloat("sliderPosition", 0f)
+    }
+
+    // Load flash mode from SharedPreferences
+    fun loadFlashMode(){
+        flashMode = sharedPreferences.getBoolean("flashMode", false)
     }
 
     // Save font type and dark mode boolean to SharedPreferences
@@ -329,7 +335,7 @@ fun PeekAReadApp(
     }
 
     //Show the error message when state set to true
-    when{
+    when {
         (openAlertDialog.value) -> {
             AlertDialogExample(
                 onDismissRequest = { openAlertDialog.value = false },
@@ -339,7 +345,10 @@ fun PeekAReadApp(
                     navController.navigateUp()
                 },
                 dialogTitle = stringResource(R.string.NoTextRecognised),
-                dialogText = stringResource(R.string.ErrorRecommendation),
+                dialogText = Html.fromHtml(
+                    stringResource(R.string.ErrorRecommendation),
+                    Html.FROM_HTML_MODE_LEGACY
+                ).toString(),
                 icon = Icons.Default.Info
             )
         }
@@ -360,6 +369,7 @@ fun PeekAReadApp(
     DisposableEffect(Unit) {
         loadPreferences()
         loadSliderPosition()
+        loadFlashMode()
         onDispose {
             savePreferences()
             saveSliderPosition()
@@ -400,8 +410,15 @@ fun PeekAReadApp(
                             verticalArrangement = Arrangement.SpaceEvenly,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            CameraPreview(context = context, lifecycleOwner = lifecycleOwner, navController = navController)
-
+                            CameraPreview(
+                                context = context,
+                                lifecycleOwner = lifecycleOwner,
+                                navController = navController,
+                                flashMode = flashMode,
+                                onFlashModeToggle = {
+                                    flashMode = !flashMode
+                                }
+                            )
 
                         }
                     } else {
@@ -412,13 +429,11 @@ fun PeekAReadApp(
                     val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
                     val context = LocalContext.current
 
-
                     var recognizedTextBlocks by remember { mutableStateOf<List<Rect>>(emptyList()) }
                     var recognizedText by remember { mutableStateOf<List<String>>(emptyList()) }
                     var containerSize by remember { mutableStateOf<Size?>(null) }
                     val scanScreenViewModel: ScanScreenViewModel = viewModel()
                     val selectedBlocks by scanScreenViewModel.selectedBlocks.collectAsState()
-
 
                     val mediaImage = imageProxy!!.image
                     val image = InputImage.fromMediaImage(
@@ -476,7 +491,6 @@ fun PeekAReadApp(
                         } catch (e: IOException) {
                             e.printStackTrace()
                         }
-
                     }
 
                     Box(modifier = Modifier
@@ -678,7 +692,6 @@ fun PeekAReadApp(
                             }
                         )
 
-
                         Spacer(modifier = Modifier.height(40.dp))
 
                         var expanded by remember { mutableStateOf(false) }
@@ -723,28 +736,36 @@ fun PeekAReadApp(
         }
     }
 }
+
 @Composable
-fun CameraPreview(context: Context, lifecycleOwner: LifecycleOwner, navController: NavHostController){
+fun CameraPreview(
+    context: Context,
+    lifecycleOwner: LifecycleOwner,
+    navController: NavHostController,
+    flashMode: Boolean,
+    onFlashModeToggle: () -> Unit
+) {
     val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
     var preview by remember { mutableStateOf<Preview?>(null) }
     val executor = ContextCompat.getMainExecutor(context)
     val cameraProvider = cameraProviderFuture.get()
-    val imageCapture: ImageCapture = remember { ImageCapture.Builder().setTargetAspectRatio(
-        AspectRatio.RATIO_16_9).build() }
+    val imageCapture: ImageCapture = remember {
+        ImageCapture.Builder().setTargetAspectRatio(AspectRatio.RATIO_16_9).build()
+    }
 
-        Box(
+    Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier.fillMaxSize()
-    ){
+    ) {
         AndroidView(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             factory = { ctx ->
                 val previewView = PreviewView(ctx)
                 cameraProviderFuture.addListener(
-                    { val cameraSelector = CameraSelector.Builder()
-                        .requireLensFacing(CameraSelector.LENS_FACING_BACK)
-                        .build()
+                    {
+                        val cameraSelector = CameraSelector.Builder()
+                            .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+                            .build()
                         cameraProvider.unbindAll()
                         cameraProvider.bindToLifecycle(
                             lifecycleOwner,
@@ -752,30 +773,63 @@ fun CameraPreview(context: Context, lifecycleOwner: LifecycleOwner, navControlle
                             preview,
                             imageCapture
                         )
-                    }, executor)
+                    },
+                    executor
+                )
                 preview = Preview.Builder().build().also {
                     it.setSurfaceProvider(previewView.surfaceProvider)
                 }
                 previewView
             }
         )
-        Column (
-            modifier = Modifier.align(Alignment.BottomCenter),
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 20.dp),
             verticalArrangement = Arrangement.Bottom
-        ){
-            FloatingActionButton(modifier = Modifier.padding(bottom = 20.dp).size(80.dp), onClick = { takePhoto(imageCapture, context, navController) }) {
-                  Icon(imageVector = ImageVector.vectorResource(id = R.drawable.camera_icon),
-                      "Take photo",
-                      modifier = Modifier.size(50.dp)
-                  )
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 20.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                FloatingActionButton(
+                    modifier = Modifier.size(80.dp),
+                    onClick = { takePhoto(imageCapture, context, navController, flashMode) }
+                ) {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(id = R.drawable.camera_icon),
+                        contentDescription = stringResource(R.string.CameraScreen),
+                        modifier = Modifier.size(50.dp)
+                    )
+                }
+
+                FloatingActionButton(
+                    modifier = Modifier
+                        .size(80.dp)
+                        .align(Alignment.CenterEnd)
+                        .padding(end = 32.dp),
+
+                onClick = {
+                        onFlashModeToggle()
+                    }
+                ) {
+                    Icon(
+                        imageVector = if (flashMode) ImageVector.vectorResource(id = R.drawable.flash_on_24px) else ImageVector.vectorResource(id = R.drawable.flash_off_24px),
+                        contentDescription = if (flashMode) stringResource(R.string.FlashOn) else stringResource(R.string.FlashOff),
+                        modifier = Modifier.size(50.dp)
+                    )
+                }
             }
         }
     }
 }
 
+fun takePhoto(imageCapture: ImageCapture, context: Context, navController: NavHostController, flashMode: Boolean
+) {
+    imageCapture.flashMode = if (flashMode) ImageCapture.FLASH_MODE_ON else ImageCapture.FLASH_MODE_OFF
 
-
-fun takePhoto(imageCapture: ImageCapture, context: Context, navController: NavHostController) {
     imageCapture.takePicture(
         ContextCompat.getMainExecutor(context),
         object : ImageCapture.OnImageCapturedCallback() {

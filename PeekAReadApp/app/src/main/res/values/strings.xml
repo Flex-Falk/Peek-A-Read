@@ -7,12 +7,17 @@
     <string name="PreferencesScreen">Edit Preferences</string>
     <string name="BackButtton">Back</string>
 
+    <string name="FlashOn">Flash On</string>
+    <string name="FlashOff">Flash Off</string>
+
     <string name="CameraPermission">The camera is important for this app. Please allow Peek-A-Read to access it.</string>
     <string name="CameraNotAvailable">The Camera is not available.</string>
     <string name="GrantAccess">Grant Access</string>
     <string name="Understood">Understood</string>
 
-    <string name="ErrorRecommendation">Tips: \\u25CF Improve lighting \\u25CF Keep your phone stable \\u25CF Smooth out wrinkles</string>
+    <string name = "InformationIcon">"Information Icon "</string>
+
+    <string name="ErrorRecommendation">Tips: <![CDATA[<br/>&#8226; Improve lighting<br/>&#8226; Keep your phone stable<br/>&#8226; Smooth out wrinkles]]></string>
     <string name="NoTextRecognised">No Text Recognized</string>
 
     <string name="DarkModeActivated">Dark mode activated</string>

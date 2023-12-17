@@ -10,8 +10,11 @@
     <string name="CameraNotAvailable">Die Kamera ist nicht verfügbar.</string>
     <string name="GrantAccess">Zugriff erlauben</string>
     <string name="Understood">Verstanden</string>
-    <string name="ErrorRecommendation">Tipps: \\u25CF Beleuchtung verbessern \\u25CF Handy stabil halten \\u25CF Falten glätten</string>
+    <string name="ErrorRecommendation">Tipps: <![CDATA[<br/>&#8226; Beleuchtung verbessern<br/>&#8226; Handy stabil halten<br/>&#8226; Falten glätten]]></string>
     <string name="NoTextRecognised">Kein Text erkannt</string>
     <string name="DarkModeActivated">Dunkelmodus aktiviert</string>
     <string name="FontType">Schriftart</string>
+    <string name="FlashOn">Blitz an</string>
+    <string name="FlashOff">Blitz aus</string>
+    <string name="InformationIcon">"Informations-Icon "</string>
 </resources>
