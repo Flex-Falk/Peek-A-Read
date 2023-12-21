@@ -110,7 +110,7 @@ import android.text.Html
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageProxy
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-
+import android.view.Surface
 
 /**
  * enum values that represent the screens in the app
@@ -829,6 +829,8 @@ fun CameraPreview(
 fun takePhoto(imageCapture: ImageCapture, context: Context, navController: NavHostController, flashMode: Boolean
 ) {
     imageCapture.flashMode = if (flashMode) ImageCapture.FLASH_MODE_ON else ImageCapture.FLASH_MODE_OFF
+
+    imageCapture.targetRotation = Surface.ROTATION_0
 
     imageCapture.takePicture(
         ContextCompat.getMainExecutor(context),
